@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>HEX 廣告播放</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%; height: 100vh;
+    overflow: hidden;
+    background: #000;
+    font-family: "Microsoft JhengHei", "PingFang TC", sans-serif;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .slide {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.8s ease-in-out;
+    background: #000;
+  }
+  .slide.active { opacity: 1; z-index: 1; }
+
+  .slide img,
+  .slide video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .caption {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 40px 60px;
+    background: linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0));
+    color: #fff;
+  }
+  .caption h2 {
+    font-size: 42px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.8);
+  }
+  .caption p {
+    font-size: 22px;
+    font-weight: 300;
+    opacity: 0.95;
+  }
+
+  /* 左上角品牌浮水印 */
+  .brand {
+    position: fixed;
+    top: 24px; left: 32px;
+    color: #fff;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.8);
+    z-index: 10;
+  }
+
+  /* 右下角進度指示 */
+  .dots {
+    position: fixed;
+    bottom: 20px; right: 32px;
+    display: flex;
+    gap: 8px;
+    z-index: 10;
+  }
+  .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.4);
+    transition: background 0.3s;
+  }
+  .dot.active { background: #fff; }
+</style>
+</head>
+<body>
+
+<div class="brand">上新汽車音響多媒體</div>
+
+<!-- ============================================================== -->
+<!-- 廣告內容從這裡開始，一個 .slide 是一張。要加就複製一段改內容  -->
+<!-- data-duration 單位是毫秒（5000 = 5 秒）                         -->
+<!-- ============================================================== -->
+
+<div class="slide" data-duration="6000">
+  <img src="https://picsum.photos/1280/720?random=1" alt="">
+  <div class="caption">
+    <h2>全新 Android 車機上市</h2>
+    <p>4K 螢幕｜無線 CarPlay｜聲控操作</p>
+  </div>
+</div>
+
+<div class="slide" data-duration="6000">
+  <img src="https://picsum.photos/1280/720?random=2" alt="">
+  <div class="caption">
+    <h2>專業音響升級</h2>
+    <p>重低音改裝｜隔音處理｜喇叭換裝</p>
+  </div>
+</div>
+
+<div class="slide" data-duration="6000">
+  <img src="https://picsum.photos/1280/720?random=3" alt="">
+  <div class="caption">
+    <h2>行車記錄器 + 胎壓偵測</h2>
+    <p>前後雙錄｜夜視強化｜即時警示</p>
+  </div>
+</div>
+
+<div class="slide" data-duration="6000">
+  <img src="https://picsum.photos/1280/720?random=4" alt="">
+  <div class="caption">
+    <h2>到店諮詢 免費估價</h2>
+    <p>嘉義市 │ 電話 05-XXX-XXXX</p>
+  </div>
+</div>
+
+<!-- ============================================================== -->
+
+<div class="dots" id="dots"></div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const dotsContainer = document.getElementById('dots');
+  let idx = 0;
+  let timer = null;
+
+  // 建立小圓點指示器
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot';
+    dotsContainer.appendChild(d);
+  });
+  const dots = document.querySelectorAll('.dot');
+
+  function show(i) {
+    slides.forEach(s => s.classList.remove('active'));
+    dots.forEach(d => d.classList.remove('active'));
+
+    const current = slides[i];
+    current.classList.add('active');
+    dots[i].classList.add('active');
+
+    // 如果這張是影片，播放它
+    const video = current.querySelector('video');
+    if (video) {
+      video.currentTime = 0;
+      video.muted = true;  // 車機自動播放必須靜音
+      video.play().catch(() => {});
+    }
+
+    // 停止前一張的影片
+    slides.forEach((s, si) => {
+      if (si !== i) {
+        const v = s.querySelector('video');
+        if (v) v.pause();
+      }
+    });
+
+    const duration = parseInt(current.dataset.duration) || 5000;
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      idx = (idx + 1) % slides.length;
+      show(idx);
+    }, duration);
+  }
+
+  if (slides.length > 0) show(0);
+
+  // 防止白畫面：圖片載入失敗時跳下一張
+  document.querySelectorAll('.slide img').forEach(img => {
+    img.addEventListener('error', () => {
+      console.warn('圖片載入失敗:', img.src);
+    });
+  });
+</script>
+
+</body>
+</html>
