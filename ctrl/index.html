@@ -63,6 +63,21 @@ color:#1a1306;font-size:17px;font-weight:800;letter-spacing:.5px}
 .ok{color:#3ed47a}.err{color:#ff7b73}
 .refresh{background:none;border:1px solid var(--line);color:var(--muted);
 border-radius:9px;padding:7px 12px;font-size:12px;margin-top:6px}
+.guide{background:var(--card);border:1px solid var(--line);border-radius:14px;
+margin-top:6px;overflow:hidden}
+.guide summary{padding:15px 16px;font-size:15px;font-weight:700;color:var(--gold-hi);
+cursor:pointer;list-style:none}
+.guide summary::-webkit-details-marker{display:none}
+.guide summary::before{content:"❔ ";}
+.guide[open] summary{border-bottom:1px solid var(--line)}
+.guide .gbody{padding:14px 16px 18px;font-size:13.5px;line-height:1.7;color:var(--txt)}
+.guide h4{margin:16px 0 6px;font-size:14px;color:var(--gold)}
+.guide h4:first-child{margin-top:0}
+.guide ol{margin:0;padding-left:20px}
+.guide li{margin-bottom:5px}
+.guide a{color:#6aa9ff;word-break:break-all}
+.guide .warn{color:var(--muted);font-size:12.5px;margin-top:4px}
+.guide code{background:var(--bg2);padding:1px 6px;border-radius:5px;font-size:12.5px;color:var(--gold-hi)}
 </style>
 </head>
 <body>
@@ -86,6 +101,44 @@ border-radius:9px;padding:7px 12px;font-size:12px;margin-top:6px}
   </div>
 
   <div id="cards"></div>
+
+  <details class="guide">
+    <summary>使用說明(忘記時點這裡)</summary>
+    <div class="gbody">
+
+      <h4>一、第一次設定 Token(只做一次)</h4>
+      <ol>
+        <li>打開建立頁面:<br><a href="https://github.com/settings/personal-access-tokens/new" target="_blank">github.com/settings/personal-access-tokens/new</a></li>
+        <li><b>Expiration</b> 設長一點(例如一年)。</li>
+        <li><b>Repository access</b> → 選 Only select repositories → 只勾 <code>HEX-qqdq/HEX</code>。</li>
+        <li><b>Permissions</b> → Contents → 改成 <b>Read and write</b>。</li>
+        <li>按 Generate token,複製產生的 <code>github_pat_...</code>。</li>
+        <li>貼到本頁最上面的 Token 欄,勾「記住這台手機」。</li>
+      </ol>
+
+      <h4>二、開關頁面</h4>
+      <ol>
+        <li>每個頁面點「開放 / 關閉」。</li>
+        <li>「自動關閉日期」選了日期 → 到期當天晚上自動關;<b>留空 = 不自動關</b>,一直開到你手動關。</li>
+        <li>改完按底部金色「儲存全部設定」,約 1～2 分鐘生效。</li>
+      </ol>
+
+      <h4>三、要把 Token 給 Claude 時</h4>
+      <ol>
+        <li>Claude 動你的 repo 前會先在對話問你同意。</li>
+        <li>你同意 → 按上面「📋 複製 Token」→ 回對話框貼上。</li>
+        <li>Claude 只用這一次、做完即止。沒有你貼上,任何人都拿不到你的 token。</li>
+      </ol>
+
+      <h4>四、安全提醒</h4>
+      <ol>
+        <li>本控制台網址勿外傳(別人即使打開,沒 token 也改不了)。</li>
+        <li>Token 過期後儲存會失敗,再開一把新的換上即可。</li>
+        <li>不想用了 → 到 GitHub 撤銷該 token;已上線的網頁照常運作,只是要再開關得換新 token。</li>
+      </ol>
+
+    </div>
+  </details>
 
 </div>
 
