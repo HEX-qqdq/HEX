@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>YIHANG 逸航｜頁面開關控制台</title>
+<style>
+:root{--bg:#0B1220;--bg2:#0E1626;--card:#131D31;--raised:#1B2740;--line:#243349;
+--gold:#C9A24B;--gold-hi:#E6C677;--txt:#F2F4F8;--muted:#8A97AD;--muted2:#6B7790;
+--on:#1CA350;--off:#E0524A}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--txt);
+font-family:system-ui,-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif}
+body{padding:0 0 40px}
+header{padding:18px 16px 14px;background:linear-gradient(135deg,#16181D,#1C1F26);
+border-bottom:2px solid var(--gold)}
+.brand{font-weight:900;font-size:21px;letter-spacing:1px;color:var(--gold)}
+.sub{font-size:13px;color:var(--muted);margin-top:4px}
+.wrap{padding:14px}
+.tokenbox{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:16px}
+.tokenbox label{font-size:13px;color:var(--muted);display:block;margin-bottom:7px}
+.tokenrow{display:flex;gap:8px}
+#tok{flex:1;min-width:0;height:44px;border-radius:10px;border:1px solid var(--line);
+background:var(--bg2);color:var(--txt);font-size:14px;padding:0 12px;outline:none}
+#tok:focus{border-color:var(--gold)}
+.tkbtn{height:44px;padding:0 14px;border:none;border-radius:10px;background:var(--raised);
+color:var(--txt);font-size:13px;font-weight:600}
+.remember{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:13px;color:var(--muted)}
+.remember input{width:18px;height:18px;accent-color:var(--gold)}
+.tokhint{font-size:11.5px;color:var(--muted2);margin-top:8px;line-height:1.5}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;
+padding:16px;margin-bottom:14px;border-left:4px solid var(--line)}
+.card h3{margin:0 0 3px;font-size:17px}
+.path{font-size:12px;color:var(--muted2);font-family:ui-monospace,monospace}
+.badge{display:inline-block;margin-top:9px;padding:3px 11px;border-radius:11px;
+font-size:12px;font-weight:700}
+.b-on{background:rgba(28,163,80,.18);color:#3ed47a}
+.b-off{background:rgba(224,82,74,.18);color:#ff7b73}
+.ctrlrow{display:flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap}
+.toggle{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;flex:0 0 auto}
+.toggle button{padding:10px 18px;background:var(--bg2);color:var(--muted);
+font-size:14px;font-weight:700;border:none;border-left:1px solid var(--line)}
+.toggle button:first-child{border-left:none}
+.toggle button.on-act{background:var(--on);color:#fff}
+.toggle button.off-act{background:var(--off);color:#fff}
+.datewrap{flex:1;min-width:140px}
+.datewrap label{font-size:11.5px;color:var(--muted);display:block;margin-bottom:4px}
+.datewrap input{width:100%;height:42px;border-radius:9px;border:1px solid var(--line);
+background:var(--bg2);color:var(--txt);font-size:15px;padding:0 10px;outline:none}
+.datewrap input:focus{border-color:var(--gold)}
+.datehint{font-size:11px;color:var(--muted2);margin-top:5px}
+.openpage{font-size:12px;color:var(--gold);text-decoration:none;margin-top:10px;display:inline-block}
+.savebar{position:sticky;bottom:0;padding:14px;background:linear-gradient(180deg,rgba(11,18,32,0),#0B1220 32%)}
+#save{width:100%;height:54px;border:none;border-radius:13px;background:var(--gold);
+color:#1a1306;font-size:17px;font-weight:800;letter-spacing:.5px}
+#save:active{background:var(--gold-hi)}
+#save:disabled{opacity:.5}
+#msg{text-align:center;font-size:13px;margin-top:10px;min-height:18px}
+.ok{color:#3ed47a}.err{color:#ff7b73}
+.refresh{background:none;border:1px solid var(--line);color:var(--muted);
+border-radius:9px;padding:7px 12px;font-size:12px;margin-top:6px}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">YIHANG 逸航</div>
+  <div class="sub">頁面開關控制台 · 開／關三個分享頁面</div>
+</header>
+<div class="wrap">
+
+  <div class="tokenbox">
+    <label>GitHub Token(儲存時需要,讀取狀態不需要)</label>
+    <div class="tokenrow">
+      <input id="tok" type="password" placeholder="貼上 github_pat_...">
+      <button class="tkbtn" id="tkshow">顯示</button>
+    </div>
+    <div class="remember">
+      <input type="checkbox" id="remember"><label for="remember" style="margin:0;color:var(--txt)">記住這台手機(存本機,免每次貼)</label>
+    </div>
+    <div class="tokhint">Token 只存在你這台裝置、只直接送往 GitHub,不會傳到其他地方。此控制台網址請勿外傳。</div>
+  </div>
+
+  <div id="cards"></div>
+
+</div>
+
+<div class="savebar">
+  <button id="save">儲存全部設定</button>
+  <div id="msg"></div>
+  <div style="text-align:center"><button class="refresh" id="refresh">重新讀取目前狀態</button></div>
+</div>
+
+<script>
+const REPO="HEX-qqdq/HEX";
+const RAW="https://raw.githubusercontent.com/HEX-qqdq/HEX/main/control.json";
+const API="https://api.github.com/repos/HEX-qqdq/HEX/contents/control.json";
+const PAGES = {
+  map:  {name:"🚗 Tesla 地圖",        path:"map/",   url:"https://hex-qqdq.github.io/HEX/map/"},
+  pasar:{name:"🏮 夜市地圖",          path:"pasar/", url:"https://hex-qqdq.github.io/HEX/pasar/"},
+  cars: {name:"🔧 YIHANG 車型查詢",   path:"cars/",  url:"https://hex-qqdq.github.io/HEX/cars/"}
+};
+const ORDER=["map","pasar","cars"];
+let state={};       // {key:{open,until}}
+let note="";        // 保留 _說明
+
+// ---- token 記憶 ----
+const tokEl=document.getElementById('tok'), rememberEl=document.getElementById('remember');
+const saved=localStorage.getItem('hex_gh_tok');
+if(saved){tokEl.value=saved;rememberEl.checked=true;}
+document.getElementById('tkshow').onclick=()=>{tokEl.type=tokEl.type==='password'?'text':'password';};
+
+function todayMs(){return Date.now();}
+function isOpen(e){
+  if(!e||e.open!==true)return false;
+  if(e.until){var dl=Date.parse(e.until+'T23:59:59+08:00');if(!isNaN(dl)&&Date.now()>dl)return false;}
+  return true;
+}
+
+function render(){
+  const c=document.getElementById('cards');c.innerHTML='';
+  ORDER.forEach(k=>{
+    const e=state[k]||{open:false,until:""};
+    const open=e.open===true, live=isOpen(e);
+    const card=document.createElement('div');
+    card.className='card';
+    card.style.borderLeftColor=live?'var(--on)':'var(--off)';
+    let badge, bcls;
+    if(live){badge='開放中'+(e.until?(' · '+e.until+' 到期'):' · 無到期');bcls='b-on';}
+    else if(open&&e.until){badge='已過期自動關閉('+e.until+')';bcls='b-off';}
+    else{badge='已關閉';bcls='b-off';}
+    card.innerHTML=`
+      <h3>${PAGES[k].name}</h3>
+      <div class="path">${PAGES[k].path}</div>
+      <div class="badge ${bcls}">${badge}</div>
+      <div class="ctrlrow">
+        <div class="toggle">
+          <button data-k="${k}" data-v="open"  class="${open?'on-act':''}">開放</button>
+          <button data-k="${k}" data-v="close" class="${open?'':'off-act'}">關閉</button>
+        </div>
+        <div class="datewrap">
+          <label>自動關閉日期</label>
+          <input type="date" data-date="${k}" value="${e.until||''}">
+        </div>
+      </div>
+      <div class="datehint">留空 = 不自動關閉,直到你手動關。</div>
+      <a class="openpage" href="${PAGES[k].url}" target="_blank">↗ 開啟此頁面確認</a>
+    `;
+    c.appendChild(card);
+  });
+  // 綁定開關
+  c.querySelectorAll('.toggle button').forEach(b=>{
+    b.onclick=()=>{
+      const k=b.dataset.k;
+      state[k]=state[k]||{open:false,until:""};
+      state[k].open=(b.dataset.v==='open');
+      render();
+    };
+  });
+  c.querySelectorAll('input[type=date]').forEach(inp=>{
+    inp.onchange=()=>{const k=inp.dataset.date;state[k]=state[k]||{open:false};state[k].until=inp.value;render();};
+  });
+}
+
+function setMsg(t,cls){const m=document.getElementById('msg');m.textContent=t;m.className=cls||'';}
+
+async function load(){
+  setMsg('讀取中…');
+  try{
+    const r=await fetch(RAW+'?t='+Date.now(),{cache:'no-store'});
+    const d=await r.json();
+    note=d['_說明']||'';
+    state={};
+    ORDER.forEach(k=>{state[k]={open:d[k]?.open===true,until:d[k]?.until||''};});
+    render();setMsg('');
+  }catch(e){setMsg('讀取狀態失敗,請檢查網路後按重新讀取','err');}
+}
+
+function b64(str){return btoa(unescape(encodeURIComponent(str)));}
+
+async function save(){
+  const tok=tokEl.value.trim();
+  if(!tok){setMsg('請先貼上 GitHub Token 才能儲存','err');return;}
+  // 記住 / 清除
+  if(rememberEl.checked)localStorage.setItem('hex_gh_tok',tok);
+  else localStorage.removeItem('hex_gh_tok');
+
+  document.getElementById('save').disabled=true;
+  setMsg('儲存中…');
+  try{
+    // 取 sha
+    const g=await fetch(API+'?ref=main',{headers:{Authorization:'Bearer '+tok,Accept:'application/vnd.github+json'}});
+    if(!g.ok)throw new Error('讀取檔案失敗('+g.status+')'+(g.status===401?' — Token 無效或過期':''));
+    const meta=await g.json();
+    // 組新內容
+    const obj={};
+    if(note)obj['_說明']=note;
+    ORDER.forEach(k=>{obj[k]={open:state[k].open===true,until:state[k].until||""};});
+    const body=JSON.stringify(obj,null,2);
+    const p=await fetch(API,{method:'PUT',
+      headers:{Authorization:'Bearer '+tok,Accept:'application/vnd.github+json','Content-Type':'application/json'},
+      body:JSON.stringify({message:'Update page switches via control panel',content:b64(body),sha:meta.sha,branch:'main'})});
+    if(!p.ok){const er=await p.json();throw new Error(er.message||('儲存失敗 '+p.status));}
+    setMsg('✓ 已儲存,約 1～2 分鐘生效','ok');
+  }catch(e){setMsg('✗ '+e.message,'err');}
+  document.getElementById('save').disabled=false;
+}
+
+document.getElementById('save').onclick=save;
+document.getElementById('refresh').onclick=load;
+load();
+</script>
+</body>
+</html>
