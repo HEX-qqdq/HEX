@@ -2,14 +2,14 @@
   "_說明": "open=true 開放 / false 關閉。until=自動關閉日期(YYYY-MM-DD,到當天 23:59 UTC+8 後自動關)。改完按 Commit,1-2 分鐘生效。",
   "map": {
     "open": true,
-    "until": "2026-07-28"
+    "until": "2026-07-05"
   },
   "pasar": {
     "open": true,
-    "until": "2026-07-28"
+    "until": "2026-07-05"
   },
   "cars": {
     "open": true,
-    "until": "2026-07-28"
+    "until": "2026-07-05"
   }
 }
