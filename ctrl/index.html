@@ -27,6 +27,10 @@ background:var(--bg2);color:var(--txt);font-size:14px;padding:0 12px;outline:non
 color:var(--txt);font-size:13px;font-weight:600}
 .remember{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:13px;color:var(--muted)}
 .remember input{width:18px;height:18px;accent-color:var(--gold)}
+.copybtn{width:100%;height:46px;margin-top:12px;border:1px solid var(--gold);
+background:rgba(201,162,75,.12);color:var(--gold-hi);border-radius:10px;
+font-size:15px;font-weight:700}
+.copybtn:active{background:rgba(201,162,75,.25)}
 .tokhint{font-size:11.5px;color:var(--muted2);margin-top:8px;line-height:1.5}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;
 padding:16px;margin-bottom:14px;border-left:4px solid var(--line)}
@@ -77,6 +81,7 @@ border-radius:9px;padding:7px 12px;font-size:12px;margin-top:6px}
     <div class="remember">
       <input type="checkbox" id="remember"><label for="remember" style="margin:0;color:var(--txt)">記住這台手機(存本機,免每次貼)</label>
     </div>
+    <button class="copybtn" id="copytok">📋 複製 Token(要給 Claude 時按這個)</button>
     <div class="tokhint">Token 只存在你這台裝置、只直接送往 GitHub,不會傳到其他地方。此控制台網址請勿外傳。</div>
   </div>
 
@@ -207,6 +212,12 @@ async function save(){
 
 document.getElementById('save').onclick=save;
 document.getElementById('refresh').onclick=load;
+document.getElementById('copytok').onclick=async()=>{
+  const v=tokEl.value.trim();
+  if(!v){setMsg('沒有 Token 可複製,請先貼上','err');return;}
+  try{await navigator.clipboard.writeText(v);setMsg('✓ Token 已複製,可貼給 Claude','ok');}
+  catch(e){tokEl.type='text';tokEl.focus();tokEl.select();try{document.execCommand('copy');}catch(_){ }setMsg('✓ 已選取,長按欄位選複製','ok');}
+};
 load();
 </script>
 </body>
