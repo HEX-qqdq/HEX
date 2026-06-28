@@ -52,6 +52,18 @@
 </style>
 </head>
 <body>
+<style id="hexgate-style">
+#hexgate{position:fixed;inset:0;z-index:2147483647;background:#0B1220;color:#F2F4F8;display:flex;align-items:center;justify-content:center;font-family:system-ui,-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;padding:24px;text-align:center}
+#hexgate .hg-box{max-width:340px}
+#hexgate .hg-logo{font-weight:900;font-size:22px;letter-spacing:1px;color:#C9A24B;margin-bottom:18px}
+#hexgate .hg-title{font-size:19px;font-weight:800;margin-bottom:10px}
+#hexgate .hg-sub{font-size:14px;color:#8A97AD;line-height:1.6}
+#hexgate .hg-spin{width:30px;height:30px;border:3px solid #243349;border-top-color:#C9A24B;border-radius:50%;margin:20px auto 0;animation:hgspin .8s linear infinite}
+@keyframes hgspin{to{transform:rotate(360deg)}}
+#hexgate .hg-retry{margin-top:18px;padding:10px 22px;background:#C9A24B;color:#1a1306;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer}
+</style>
+<div id="hexgate"><div class="hg-box"><div class="hg-logo">YIHANG 逸航</div><div class="hg-title" id="hg-title">檢查中…</div><div class="hg-sub" id="hg-sub">正在確認開放狀態</div><div class="hg-spin" id="hg-spin"></div><button class="hg-retry" id="hg-retry" style="display:none">重試</button></div></div>
+
 <header>
   <h1>🏮 新山夜市地圖 Pasar Malam JB</h1>
   <p>MBJB + 巴西古當(MBPG)官方清單 · 一般營業 17:00–22:00</p>
@@ -147,5 +159,27 @@ function buildTabs(){
 if(document.readyState!=="loading") init();
 else document.addEventListener('DOMContentLoaded',init);
 </script>
+<script>(function(){
+var KEY="pasar";
+var CTRL="https://raw.githubusercontent.com/HEX-qqdq/HEX/main/control.json";
+var g=document.getElementById('hexgate');
+var T=document.getElementById('hg-title'),S=document.getElementById('hg-sub'),SP=document.getElementById('hg-spin'),R=document.getElementById('hg-retry');
+function loading(){T.textContent='檢查中…';S.textContent='正在確認開放狀態';SP.style.display='block';R.style.display='none';}
+function closed(t,s,retry){T.textContent=t;S.textContent=s;SP.style.display='none';R.style.display=retry?'inline-block':'none';}
+function reveal(){g.style.display='none';}
+function check(){
+  loading();
+  fetch(CTRL+'?t='+Date.now(),{cache:'no-store'})
+  .then(function(r){if(!r.ok)throw 0;return r.json();})
+  .then(function(d){
+    var e=d[KEY]||{};var ok=e.open===true;
+    if(ok&&e.until){var dl=Date.parse(e.until+'T23:59:59+08:00');if(!isNaN(dl)&&Date.now()>dl)ok=false;}
+    if(ok)reveal();else closed('本頁面目前未開放','如需查看請聯繫 YIHANG 逸航',false);
+  })
+  .catch(function(){closed('暫時無法載入','請稍後再試',true);});
+}
+R.addEventListener('click',check);
+check();
+})();</script>
 </body>
 </html>
