@@ -23,9 +23,12 @@
   .legend span{display:inline-flex;align-items:center;gap:5px}
   .dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:0 0 auto}
   .d-red{background:var(--red)} .d-amber{background:var(--amber)} .d-blue{background:var(--blue)} .d-grey{background:var(--grey)}
-  #map{width:100%;height:46vh;min-height:300px;background:#0a0b0d;z-index:1}
+  .filters{display:flex;gap:8px;padding:11px 14px 0;flex-wrap:wrap}
+  .fbtn{flex:1;min-width:90px;border:1px solid var(--line);background:var(--panel);color:var(--muted);border-radius:10px;padding:9px 6px;font-size:13px;font-weight:700;cursor:pointer;text-align:center}
+  .fbtn.on{background:var(--red);border-color:var(--red);color:#fff}
+  #map{width:100%;height:44vh;min-height:280px;background:#0a0b0d;z-index:1;margin-top:11px}
   .list{padding:12px 14px 40px;display:flex;flex-direction:column;gap:12px}
-  .group-label{font-size:12px;color:var(--dim);letter-spacing:1.5px;text-transform:uppercase;margin:6px 2px -2px;font-weight:600}
+  .group-label{font-size:12px;color:var(--dim);letter-spacing:1.2px;text-transform:uppercase;margin:8px 2px -2px;font-weight:700}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:13px 14px;cursor:pointer;transition:border-color .15s,background .15s}
   .card:hover,.card.active{border-color:#3a3f4a;background:var(--panel2)}
   .card-top{display:flex;align-items:flex-start;gap:9px}
@@ -50,7 +53,6 @@
   .btn-g{background:var(--gmaps)} .btn-w{background:var(--waze);color:#062a33} .btn-c{background:#23272F;border:1px solid var(--line)}
   .btn svg{width:15px;height:15px;flex:0 0 auto}
   .note{font-size:11.5px;color:var(--dim);padding:0 16px 26px;line-height:1.6}
-  /* leaflet popup */
   .leaflet-popup-content-wrapper{background:var(--panel);color:var(--text);border-radius:12px;border:1px solid var(--line)}
   .leaflet-popup-tip{background:var(--panel);border:1px solid var(--line)}
   .leaflet-popup-content{margin:12px 14px;font-family:inherit}
@@ -66,201 +68,221 @@
 </style>
 </head>
 <body>
-<style id="hexgate-style">
-#hexgate{position:fixed;inset:0;z-index:2147483647;background:#0B1220;color:#F2F4F8;display:flex;align-items:center;justify-content:center;font-family:system-ui,-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;padding:24px;text-align:center}
-#hexgate .hg-box{max-width:340px}
-#hexgate .hg-logo{font-weight:900;font-size:22px;letter-spacing:1px;color:#C9A24B;margin-bottom:18px}
-#hexgate .hg-title{font-size:19px;font-weight:800;margin-bottom:10px}
-#hexgate .hg-sub{font-size:14px;color:#8A97AD;line-height:1.6}
-#hexgate .hg-spin{width:30px;height:30px;border:3px solid #243349;border-top-color:#C9A24B;border-radius:50%;margin:20px auto 0;animation:hgspin .8s linear infinite}
-@keyframes hgspin{to{transform:rotate(360deg)}}
-#hexgate .hg-retry{margin-top:18px;padding:10px 22px;background:#C9A24B;color:#1a1306;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer}
-</style>
-<div id="hexgate"><div class="hg-box"><div class="hg-logo">YIHANG 逸航</div><div class="hg-title" id="hg-title">檢查中…</div><div class="hg-sub" id="hg-sub">正在確認開放狀態</div><div class="hg-spin" id="hg-spin"></div><button class="hg-retry" id="hg-retry" style="display:none">重試</button></div></div>
-
 <div class="wrap">
   <header>
     <h1>馬來西亞 · 特斯拉／EV 改裝店導航地圖
-      <span class="sub">點標記或卡片看資訊 · 一鍵 Google／Waze 導航 · 即時營業狀態（大馬時間 UTC+8）</span>
+      <span class="sub">點標記或卡片看資訊 · Google／Waze 一鍵導航 · 即時營業狀態（大馬時間 UTC+8）</span>
     </h1>
     <div class="legend">
-      <span><i class="dot d-red"></i>Tesla 高契合（首選）</span>
-      <span><i class="dot d-amber"></i>維修／安裝端</span>
-      <span><i class="dot d-blue"></i>充電／線上通路</span>
-      <span><i class="dot d-grey"></i>較遠（怡保）</span>
+      <span><i class="dot d-red"></i>與產品高契合（Tesla／360／主機）</span>
+      <span><i class="dot d-amber"></i>綜合改裝／配件／PPF</span>
+      <span><i class="dot d-blue"></i>充電／線上</span>
+      <span><i class="dot d-grey"></i>較遠／參考</span>
     </div>
   </header>
+  <div class="filters" id="filters">
+    <button class="fbtn on" data-r="all">全部</button>
+    <button class="fbtn" data-r="central">中馬 · KL雪蘭莪</button>
+    <button class="fbtn" data-r="north">北馬 · 檳城吉打</button>
+  </div>
   <div id="map"></div>
   <div class="list" id="list"></div>
   <div class="note">
     匯率參考 RM1 ≈ NT$7.8 ≈ ¥1.68。營業時間與地址以現場／店家官方為準；資料整理自 Google 地圖（2026/06）。
-    Voltura Concept 老闆為 Jireh，主要以 TikTok @voltura.concept、Facebook、Instagram 經營。
+    北馬多為「做 Tesla 的綜合改裝／配件店」，非 Tesla 專門 boutique；官方原廠認證鈑烤（如 SR EV）未列入。
   </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
-const SHOPS = [
-  { id:"evess", n:"EVESS Malaysia", color:"red", num:1, pri:3,
-    role:"Tesla 專門改裝 · 與您最對位",
-    lat:2.9999108, lng:101.7385716, pid:"ChIJhyDSVLvLzTERYvohb2UpFcg",
-    addr:"Lot 15, Jalan Nouvelle, Nouvelle Industrial Park Balakong, Taman Balakong Jaya, 43300 Seri Kembangan, Selangor",
-    tel:"+60123265222", telShow:"+60 12-326 5222", rating:4.8, rc:36,
-    hoursTxt:"週一–六 10:00–19:30 · 週日休",
-    hours:{1:[600,1170],2:[600,1170],3:[600,1170],4:[600,1170],5:[600,1170],6:[600,1170]},
-    prod:"電吸門（日系馬達＋EMC）、Yoke、電動前備箱、大屏、push-out 門把、PPF；也替 Porsche Taycan 裝過電吸門",
-    fit:"電吸門他已有 → 錯位主推 <b>Tesla 電子後視鏡、通風座椅、環景</b>。Tesla 客群與 DOD T-ONE PLUS 最對位。" },
+const SHOPS=[
+ // ===== 中馬 KL/雪蘭莪 =====
+ {id:"evess",region:"central",n:"EVESS Malaysia",color:"red",num:1,role:"Tesla 專門改裝 · 與你最對位 · 雪蘭莪 Seri Kembangan",
+  lat:2.9999108,lng:101.7385716,pid:"ChIJhyDSVLvLzTERYvohb2UpFcg",
+  addr:"Lot 15, Jalan Nouvelle, Nouvelle Industrial Park Balakong, 43300 Seri Kembangan, Selangor",
+  tel:"+60123265222",telShow:"+60 12-326 5222",rating:4.8,rc:36,hoursTxt:"週一–六 10:00–19:30 · 週日休",
+  hours:{1:[600,1170],2:[600,1170],3:[600,1170],4:[600,1170],5:[600,1170],6:[600,1170]},
+  prod:"電吸門（日系馬達＋EMC）、Yoke、電動前備箱、大屏、PPF",
+  fit:"電吸門他已有 → 錯位主推 <b>Tesla 電子後視鏡、通風座椅、環景</b>。"},
+ {id:"thouse",region:"central",n:"T House Automotive",color:"red",num:2,role:"Tesla 客製工作室（5.0★）· KL",
+  lat:3.2037958,lng:101.6113905,pid:"ChIJiVaEGdpFzDERSR9FtqlBqEc",
+  addr:"23, Jalan Tago 12, Taman Perindustrian Kip, 52200 Kuala Lumpur",
+  tel:"+60123393130",telShow:"+60 12-339 3130",rating:5.0,rc:19,hoursTxt:"週一–六 10:00–18:30 · 週日休",
+  hours:{1:[600,1110],2:[600,1110],3:[600,1110],4:[600,1110],5:[600,1110],6:[600,1110]},
+  prod:"包圍、碳纖、運動座椅、智能配件、軟吸門",
+  fit:"已做運動座椅 → <b>通風座椅</b>延伸性強；可切入電子後視鏡、電吸門。"},
+ {id:"voltura",region:"central",n:"Voltura Concept",color:"red",num:3,role:"EV 客製新銳 · 老闆 Jireh（5.0★）· KL Desa Tun Razak",
+  lat:3.0811983,lng:101.7211561,pid:"ChIJofyVGFI1zDERPpyaEOtCjDg",
+  addr:"11, Jalan 2/118b, Desa Tun Razak, 56000 Kuala Lumpur",
+  tel:"+60183620370",telShow:"+60 18-362 0370",rating:5.0,rc:5,hoursTxt:"週一–六 10:00–19:00 · 週日休",
+  hours:{1:[600,1140],2:[600,1140],3:[600,1140],4:[600,1140],5:[600,1140],6:[600,1140]},
+  prod:"EV 客製改裝、安裝、售後（社群經營）",
+  fit:"新店有彈性、好談 → 可切入 <b>電子後視鏡、通風座椅、電吸門、環景</b>。近 NaviLab。"},
+ {id:"exotic",region:"central",n:"Exotic Mods",color:"amber",num:4,role:"Tesla 獨立 4S · 維修／性能 · 雪蘭莪 PJ",
+  lat:3.1003203,lng:101.6314966,pid:"ChIJmeoXFjtPzDER-ocbW1_dkLA",
+  addr:"8, Lorong 51a/227c, Seksyen 51a, 46100 Petaling Jaya, Selangor",
+  tel:"+60163322787",telShow:"+60 16-332 2787",rating:4.4,rc:28,hoursTxt:"週一–六 09:00–18:00 · 週日休",
+  hours:{1:[540,1080],2:[540,1080],3:[540,1080],4:[540,1080],5:[540,1080],6:[540,1080]},
+  prod:"Tesla 維修保養、PPF、Yoke、性能升級",
+  fit:"偏安裝／服務端 → 適合當 <b>示範與安裝夥伴</b>。"},
+ {id:"evguru",region:"central",n:"EvGuru",color:"blue",num:5,role:"EV 充電樁 + Tesla 配件電商 · 雪蘭莪 PJ",
+  lat:3.1302114,lng:101.6291957,pid:"ChIJXY_dXJI1zDERehJb-k0_uQE",
+  addr:"Unit 13A07, Level 13A, Lobby 2 Block A, Damansara Intan, 47308 Petaling Jaya, Selangor",
+  tel:"+60128238843",telShow:"+60 12-823 8843",rating:4.8,rc:103,hoursTxt:"週一–五 09:00–18:00 · 週六日休",
+  hours:{1:[540,1080],2:[540,1080],3:[540,1080],4:[540,1080],5:[540,1080]},
+  prod:"EV 充電樁安裝（主力）、Tesla 配件線上零售",
+  fit:"重疊低（主攻充電）→ 較適合當 <b>線上零售通路</b>。"},
+ {id:"jac",region:"central",n:"JAC Motorsport",color:"grey",num:6,role:"Tesla/BYD 改裝 · 怡保（距 KL 約 2 小時）",
+  lat:4.5819384,lng:101.1022934,pid:"ChIJzxKZ4Z7tyjERkOxxx6cB0KY",
+  addr:"Lot 16245, Jalan Raja Permaisuri Bainun, Taman Gopeng, 30250 Ipoh, Perak",
+  tel:"+60148866385",telShow:"+60 14-886 6385",rating:4.3,rc:6,hoursTxt:"每日 10:30–18:00",
+  hours:{0:[630,1080],1:[630,1080],2:[630,1080],3:[630,1080],4:[630,1080],5:[630,1080],6:[630,1080]},
+  prod:"Tesla/BYD 電吸門（RM1,499 ≈ NT$11,700）、包圍、LED",
+  fit:"在怡保、離 KL 遠 → 主要當 <b>電吸門定價參考</b>。"},
 
-  { id:"thouse", n:"T House Automotive", color:"red", num:2, pri:3,
-    role:"Tesla 客製工作室（5.0★）",
-    lat:3.2037958, lng:101.6113905, pid:"ChIJiVaEGdpFzDERSR9FtqlBqEc",
-    addr:"23, Jalan Tago 12, Taman Perindustrian Kip, 52200 Kuala Lumpur",
-    tel:"+60123393130", telShow:"+60 12-339 3130", rating:5.0, rc:19,
-    hoursTxt:"週一–六 10:00–18:30 · 週日休",
-    hours:{1:[600,1110],2:[600,1110],3:[600,1110],4:[600,1110],5:[600,1110],6:[600,1110]},
-    prod:"包圍、碳纖、輪框、運動化座椅、智能配件、CarPlay；車型涵蓋 Model 3/Y/Highland/Juniper",
-    fit:"可切入 <b>電子後視鏡、通風座椅、電吸門</b>。已做運動座椅 → 通風座椅延伸性強。" },
-
-  { id:"voltura", n:"Voltura Concept", color:"red", num:3, pri:2,
-    role:"EV 客製新銳 · 老闆 Jireh（5.0★）",
-    lat:3.0811983, lng:101.7211561, pid:"ChIJofyVGFI1zDERPpyaEOtCjDg",
-    addr:"11, Jalan 2/118b, Desa Tun Razak, 56000 Kuala Lumpur",
-    tel:"+60183620370", telShow:"+60 18-362 0370", rating:5.0, rc:5,
-    hoursTxt:"週一–六 10:00–19:00 · 週日休",
-    hours:{1:[600,1140],2:[600,1140],3:[600,1140],4:[600,1140],5:[600,1140],6:[600,1140]},
-    prod:"EV 客製改裝、安裝、售後；以 TikTok／FB／IG 經營，口碑佳",
-    fit:"新店有彈性、好談 → 可切入 <b>電子後視鏡、通風座椅、電吸門、環景</b>。位置近 Sungai Besi（離 NaviLab 很近，可一併拜訪）。" },
-
-  { id:"exotic", n:"Exotic Mods", color:"amber", num:4, pri:2,
-    role:"Tesla 獨立 4S · 維修／性能",
-    lat:3.1003203, lng:101.6314966, pid:"ChIJmeoXFjtPzDER-ocbW1_dkLA",
-    addr:"8, Lorong 51a/227c, Seksyen 51a, 46100 Petaling Jaya, Selangor",
-    tel:"+60163322787", telShow:"+60 16-332 2787", rating:4.4, rc:28,
-    hoursTxt:"週一–六 09:00–18:00 · 週日休",
-    hours:{1:[540,1080],2:[540,1080],3:[540,1080],4:[540,1080],5:[540,1080],6:[540,1080]},
-    prod:"Tesla 維修保養、PPF、Yoke、性能升級、日規 EV 進口；也接超跑",
-    fit:"偏安裝／服務端 → 適合當 <b>示範與安裝夥伴</b>。可切入 後視鏡、通風座椅、電吸門。" },
-
-  { id:"evguru", n:"EvGuru", color:"blue", num:5, pri:1,
-    role:"EV 充電樁 + Tesla 配件電商",
-    lat:3.1302114, lng:101.6291957, pid:"ChIJXY_dXJI1zDERehJb-k0_uQE",
-    addr:"Unit 13A07, Level 13A, Lobby 2 Block A, Damansara Intan, 47308 Petaling Jaya, Selangor",
-    tel:"+60128238843", telShow:"+60 12-823 8843", rating:4.8, rc:103,
-    hoursTxt:"週一–五 09:00–18:00 · 週六日休",
-    hours:{1:[540,1080],2:[540,1080],3:[540,1080],4:[540,1080],5:[540,1080]},
-    prod:"EV 充電樁安裝（主力）、Tesla 配件線上零售",
-    fit:"與您重疊低（主攻充電）→ 較適合當 <b>線上零售通路</b>，非首選改裝夥伴。" },
-
-  { id:"jac", n:"JAC Motorsport", color:"grey", num:6, pri:1,
-    role:"Tesla/BYD 改裝 · 怡保（距 KL 約 2 小時）",
-    lat:4.5819384, lng:101.1022934, pid:"ChIJzxKZ4Z7tyjERkOxxx6cB0KY",
-    addr:"Lot 16245, Jalan Raja Permaisuri Bainun, Taman Gopeng, 30250 Ipoh, Perak",
-    tel:"+60148866385", telShow:"+60 14-886 6385", rating:4.3, rc:6,
-    hoursTxt:"每日 10:30–18:00",
-    hours:{0:[630,1080],1:[630,1080],2:[630,1080],3:[630,1080],4:[630,1080],5:[630,1080],6:[630,1080]},
-    prod:"Tesla/BYD 電吸門（RM1,499 ≈ NT$11,700）、包圍、frunk、LED",
-    fit:"在怡保、離 KL 遠 → 主要當 <b>電吸門定價參考（RM1,499）</b>。若北上順道可看。可切入 後視鏡、通風座椅。" },
+ // ===== 北馬 檳城/吉打 =====
+ {id:"tesla88",region:"north",n:"Tesla 88 Motorsport",color:"red",num:7,role:"北馬唯一掛 Tesla 名號獨立店 · 吉打雙溪大年 · 24h",
+  lat:5.6461956,lng:100.4928022,pid:"ChIJ1V35WcUpSzARYbf_EThtREA",
+  addr:"109A, Jalan Badlishah, 08000 Sungai Petani, Kedah",
+  tel:"+60164103889",telShow:"+60 16-410 3889",rating:5.0,rc:8,hoursTxt:"24 小時營業",
+  hours:{0:[0,1440],1:[0,1440],2:[0,1440],3:[0,1440],4:[0,1440],5:[0,1440],6:[0,1440]},
+  prod:"Tesla 汽配／維修／接送，名號直接打 Tesla",
+  fit:"北馬唯一 Tesla 名號獨立店 → 可切入 <b>電子後視鏡、通風座椅、電吸門</b>，值得親訪看實力。"},
+ {id:"ultrasound",region:"north",n:"Ultra Sound Auto Accessories",color:"red",num:8,role:"360 內嵌後視鏡手路 · 檳城 Jelutong",
+  lat:5.3934521,lng:100.3139132,pid:"ChIJyUveO9fDSjARAt_ZpVMf4HY",
+  addr:"392V, Jln Perak, Taman Continental, 11600 Jelutong, Pulau Pinang",
+  tel:"+60124786313",telShow:"+60 12-478 6313",rating:4.3,rc:22,hoursTxt:"週一–六 10:00–19:30 · 週日休",
+  hours:{1:[600,1170],2:[600,1170],3:[600,1170],4:[600,1170],5:[600,1170],6:[600,1170]},
+  prod:"資訊娛樂大屏、360 環景（做進後視鏡殼像原廠）、隔熱紙",
+  fit:"老闆把 360 做進後視鏡殼 → 與你 <b>電子後視鏡／360</b> 最對味，優先接觸。"},
+ {id:"bestpoint",region:"north",n:"Best Point Car Audio & Accessories",color:"red",num:9,role:"Dynavin＋360 · 檳城 Bayan Lepas",
+  lat:5.3278472,lng:100.2732159,pid:"ChIJ-fiErQbASjAR7dIvLwAmR5E",
+  addr:"100, Jalan Dato Ismail Hashim, Taman Tunas Muda, 11900 Bayan Lepas, Penang",
+  tel:"+6046455307",telShow:"+60 4-645 5307",rating:4.6,rc:45,hoursTxt:"週一–六 10:00–19:30",
+  hours:{1:[600,1170],2:[600,1170],3:[600,1170],4:[600,1170],5:[600,1170],6:[600,1170],0:[600,1170]},
+  prod:"Android 主機＋環景、Dynavin 經銷、70mai 行車記錄器、喇叭",
+  fit:"已做 360＋Dynavin → 可鋪 <b>電子後視鏡、通風座椅</b>。"},
+ {id:"cybrother",region:"north",n:"CY Brother Auto Accessories",color:"red",num:10,role:"360／70mai 檳城授權 · 檳城 Jelutong",
+  lat:5.3918962,lng:100.3107408,pid:"ChIJzQAQpdfDSjARq9wXdGnmsG0",
+  addr:"76B, Jln Tan Sri Teh Ewe Lim, 11600 George Town, Pulau Pinang",
+  tel:"+601163328646",telShow:"+60 11-6332 8646",rating:4.7,rc:49,hoursTxt:"週一–六 10:00–19:00 · 週日 10:00–14:00",
+  hours:{1:[600,1140],2:[600,1140],3:[600,1140],4:[600,1140],5:[600,1140],6:[600,1140],0:[600,840]},
+  prod:"DDPai／70mai 授權、Android 主機 360、氛圍燈、大燈罩",
+  fit:"做 360 與主機 → 可加 <b>電子後視鏡、通風座椅</b> 產品線。"},
+ {id:"premiumauto",region:"north",n:"Premium Auto Garage",color:"amber",num:11,role:"音響改裝口碑 · 檳城 Gelugor",
+  lat:5.3697841,lng:100.3104161,pid:"ChIJj-pwF5DBSjARKDJIuBC0u8k",
+  addr:"2483, Jalan Sultan Azlan Shah, Kampung Gelugor, 11700 Gelugor, Penang",
+  tel:"+60143092860",telShow:"+60 14-309 2860",rating:4.7,rc:36,hoursTxt:"週一–六 10:30–19:30 · 週日休",
+  hours:{1:[630,1170],2:[630,1170],3:[630,1170],4:[630,1170],5:[630,1170],6:[630,1170]},
+  prod:"車音響、氛圍燈、數位儀表、尾燈",
+  fit:"島上音響改裝口碑佳 → 可切入 <b>電子後視鏡、通風座椅</b>。"},
+ {id:"extreme",region:"north",n:"Extreme Automart",color:"amber",num:12,role:"大展廳綜合 · 檳城 George Town",
+  lat:5.4393015,lng:100.3077329,pid:"ChIJz-qMo8DDSjARiTddtpTDs7o",
+  addr:"173, Jalan Kelawai, 10250 George Town, Pulau Pinang",
+  tel:"+6042299272",telShow:"+60 4-229 9272",rating:4.4,rc:138,hoursTxt:"每日 11:00–19:00",
+  hours:{0:[660,1140],1:[660,1140],2:[660,1140],3:[660,1140],4:[660,1140],5:[660,1140],6:[660,1140]},
+  prod:"CarPlay/Android、烤漆、方向盤包皮、大展廳",
+  fit:"規模大、好找 → 適合鋪 <b>電子後視鏡、360</b> 等差異化單品。"},
+ {id:"emax",region:"north",n:"Emax PPF & Gtechniq BM",color:"amber",num:13,role:"PPF／陶瓷鍍膜（5.0★）· 威省 Bukit Mertajam",
+  lat:5.3518259,lng:100.4384517,pid:"ChIJiV12ICrGSjAROqyNz3Fi9UA",
+  addr:"No. 39, Jalan Limau Manis 3, Taman Limau Manis, 14000 Bukit Mertajam, Penang",
+  tel:"+60143033306",telShow:"+60 14-303 3306",rating:5.0,rc:62,hoursTxt:"週一–六 09:00–18:30 · 週日休",
+  hours:{1:[540,1110],2:[540,1110],3:[540,1110],4:[540,1110],5:[540,1110],6:[540,1110]},
+  prod:"PPF 透明漆面膜、Gtechniq 陶瓷鍍膜",
+  fit:"Tesla 漆面保護主力店 → 客群高端，適合導入 <b>後視鏡／通風座椅</b> 加值。"},
+ {id:"plugplay88",region:"north",n:"Plug & Play 88 Auto Accessories",color:"amber",num:14,role:"大型配件店（4.9★）· 吉打雙溪大年",
+  lat:5.6363643,lng:100.4969031,pid:"ChIJq5rC9REpSzARcDjmJ9hkRvQ",
+  addr:"713b, Jalan Kuala Ketil, 08000 Sungai Petani, Kedah",
+  tel:"+60164016784",telShow:"+60 16-401 6784",rating:4.9,rc:575,hoursTxt:"週一–六 10:00–19:00 · 週日休",
+  hours:{1:[600,1140],2:[600,1140],3:[600,1140],4:[600,1140],5:[600,1140],6:[600,1140]},
+  prod:"行車記錄器、隔熱紙、氛圍燈、Android 主機",
+  fit:"雙溪大年大型安裝店、口碑量大 → 可鋪 <b>電子後視鏡、通風座椅</b>。"},
+ {id:"sahabat",region:"north",n:"Sahabat & Co Accessories",color:"amber",num:15,role:"氛圍燈／主機 · 吉打雙溪大年 Amanjaya",
+  lat:5.6722427,lng:100.5100406,pid:"ChIJzY6OxBkpSzARN82tAWJTZGo",
+  addr:"No 20, 21 & 22, Lengkok Cempaka 2, Bandar Amanjaya, 08000 Sungai Petani, Kedah",
+  tel:"+601112146102",telShow:"+60 11-1214 6102",rating:4.8,rc:318,hoursTxt:"週一–日 10:00–19:00 · 週五休",
+  hours:{0:[600,1140],1:[600,1140],2:[600,1140],3:[600,1140],4:[600,1140],6:[600,1140]},
+  prod:"氛圍燈、Android 主機、車牌、配件",
+  fit:"雙溪大年大型配件店 → 可鋪 <b>電子後視鏡、通風座椅</b>。"},
+ {id:"kenken",region:"north",n:"Ken Ken Car Auto Accessories",color:"amber",num:16,role:"大型配件店（4.8★）· 吉打亞羅士打",
+  lat:6.1247137,lng:100.357857,pid:"ChIJna9NoKVESzARNWycaLUirI4",
+  addr:"24, Jln Tunku Abdul Rahman Putra, Kampung Lubok Peringgi, 05150 Alor Setar, Kedah",
+  tel:"+60104060430",telShow:"+60 10-406 0430",rating:4.8,rc:387,hoursTxt:"週一–日 09:30–18:30 · 週五休",
+  hours:{0:[570,1110],1:[570,1110],2:[570,1110],3:[570,1110],4:[570,1110],6:[570,1110]},
+  prod:"綜合車用配件、安裝",
+  fit:"亞羅士打最大配件店之一 → 北端鋪貨點，可切入 <b>後視鏡、通風座椅</b>。"},
 ];
 
 const COLORS={red:"#E11D2E",amber:"#E8A12C",blue:"#3B82F6",grey:"#7A8089"};
-
-function mytNow(){
-  const s=new Date().toLocaleString('en-US',{timeZone:'Asia/Kuala_Lumpur'});
-  return new Date(s);
-}
-function openState(shop){
-  const d=mytNow(); const day=d.getDay(); const mins=d.getHours()*60+d.getMinutes();
-  const h=shop.hours[day];
-  if(h && mins>=h[0] && mins<h[1]) return {open:true,txt:"營業中"};
-  return {open:false,txt:"未營業"};
-}
+function mytNow(){return new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Kuala_Lumpur'}));}
+function openState(s){const d=mytNow();const h=s.hours[d.getDay()];const m=d.getHours()*60+d.getMinutes();
+  return (h&&m>=h[0]&&m<h[1])?{open:true,txt:"營業中"}:{open:false,txt:"未營業"};}
 function gUrl(s){return `https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}&destination_place_id=${s.pid}`;}
 function wUrl(s){return `https://waze.com/ul?ll=${s.lat},${s.lng}&navigate=yes`;}
 const GICON='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg>';
 const WICON='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a9 9 0 0 0-9 9c0 2 .7 3.4 1 4.2.3.8-.2 2-.6 2.7-.2.4.1.9.6.8 1.2-.2 2.6-.6 3.3-1.1A9 9 0 1 0 12 3zm-3 8a1.2 1.2 0 1 1 0-2.4A1.2 1.2 0 0 1 9 11zm6 0a1.2 1.2 0 1 1 0-2.4A1.2 1.2 0 0 1 15 11zm-3 5.2c-2 0-3.5-1.3-3.8-3h7.6c-.3 1.7-1.8 3-3.8 3z"/></svg>';
 const CICON='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.4.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.4c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.4 0 .8-.3 1l-2.1 2.2z"/></svg>';
 
-const map=L.map('map',{zoomControl:true,scrollWheelZoom:false}).setView([3.10,101.69],11);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-  maxZoom:19, attribution:'&copy; OpenStreetMap'}).addTo(map);
-
+const map=L.map('map',{zoomControl:true,scrollWheelZoom:false}).setView([4.2,101.2],7);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+const layer=L.layerGroup().addTo(map);
 const markers={};
-SHOPS.forEach(s=>{
-  const html=`<div class="mk"><svg width="30" height="42" viewBox="0 0 30 42"><path d="M15 0C6.7 0 0 6.7 0 15c0 10 15 27 15 27s15-17 15-27C30 6.7 23.3 0 15 0z" fill="${COLORS[s.color]}"/></svg><span>${s.num}</span></div>`;
-  const icon=L.divIcon({html,className:'',iconSize:[30,42],iconAnchor:[15,42],popupAnchor:[0,-38]});
-  const m=L.marker([s.lat,s.lng],{icon}).addTo(map);
-  const pop=`<div class="pop-name">${s.num}. ${s.n}</div><div class="pop-role">${s.role}</div>
-    <div class="pop-addr">${s.addr}<br>${s.hoursTxt}</div>
-    <div class="pop-btns">
-      <a class="btn btn-g" target="_blank" rel="noopener" href="${gUrl(s)}">${GICON}Google</a>
-      <a class="btn btn-w" target="_blank" rel="noopener" href="${wUrl(s)}">${WICON}Waze</a>
-    </div>`;
-  m.bindPopup(pop);
-  markers[s.id]=m;
-});
-
-// fit to Klang Valley cluster (exclude far Ipoh)
-const kv=SHOPS.filter(s=>s.id!=='jac').map(s=>[s.lat,s.lng]);
-map.fitBounds(kv,{padding:[40,40]});
-
-// build list
 const list=document.getElementById('list');
-let lastGroup="";
-SHOPS.forEach(s=>{
-  const grp = s.pri>=3?"首選 · Tesla 高契合" : s.pri===2?"次選 · 可切入" : "參考 · 通路／遠距";
-  if(grp!==lastGroup){const gl=document.createElement('div');gl.className='group-label';gl.textContent=grp;list.appendChild(gl);lastGroup=grp;}
-  const st=openState(s);
-  const card=document.createElement('div');
-  card.className='card'; card.id='card-'+s.id;
-  card.innerHTML=`
-    <div class="card-top">
-      <div class="pin" style="background:${COLORS[s.color]}">${s.num}</div>
-      <div>
-        <div class="name">${s.n}</div>
-        <div class="role">${s.role}</div>
-      </div>
-      <div class="meta"><span class="pill ${st.open?'open':'closed'}">${st.txt}</span></div>
-    </div>
-    <div class="stars">${'★'.repeat(Math.round(s.rating))}<span class="rating">${s.rating.toFixed(1)} · ${s.rc} 則評論</span></div>
-    <div class="info"><b>📍</b> ${s.addr}<br><b>🕒</b> ${s.hoursTxt}<br><b>🔧</b> ${s.prod}</div>
-    <div class="fit ${s.color}">${s.fit}</div>
-    <div class="btns">
-      <a class="btn btn-g" target="_blank" rel="noopener" href="${gUrl(s)}">${GICON}Google 導航</a>
-      <a class="btn btn-w" target="_blank" rel="noopener" href="${wUrl(s)}">${WICON}Waze 導航</a>
-      <a class="btn btn-c" href="tel:${s.tel}">${CICON}撥電話</a>
-    </div>`;
-  card.addEventListener('click',e=>{
-    if(e.target.closest('a')) return;
-    document.querySelectorAll('.card').forEach(c=>c.classList.remove('active'));
-    card.classList.add('active');
-    map.setView([s.lat,s.lng], s.id==='jac'?13:15,{animate:true});
-    markers[s.id].openPopup();
-    document.getElementById('map').scrollIntoView({behavior:'smooth',block:'start'});
+let currentR="all";
+
+function visible(){return SHOPS.filter(s=>currentR==="all"||s.region===currentR);}
+
+function render(){
+  layer.clearLayers(); list.innerHTML=""; for(const k in markers) delete markers[k];
+  const shops=visible();
+  // markers
+  shops.forEach(s=>{
+    const html=`<div class="mk"><svg width="30" height="42" viewBox="0 0 30 42"><path d="M15 0C6.7 0 0 6.7 0 15c0 10 15 27 15 27s15-17 15-27C30 6.7 23.3 0 15 0z" fill="${COLORS[s.color]}"/></svg><span>${s.num}</span></div>`;
+    const icon=L.divIcon({html,className:'',iconSize:[30,42],iconAnchor:[15,42],popupAnchor:[0,-38]});
+    const m=L.marker([s.lat,s.lng],{icon}).addTo(layer);
+    m.bindPopup(`<div class="pop-name">${s.num}. ${s.n}</div><div class="pop-role">${s.role}</div>
+      <div class="pop-addr">${s.addr}<br>${s.hoursTxt}</div>
+      <div class="pop-btns">
+        <a class="btn btn-g" target="_blank" rel="noopener" href="${gUrl(s)}">${GICON}Google</a>
+        <a class="btn btn-w" target="_blank" rel="noopener" href="${wUrl(s)}">${WICON}Waze</a></div>`);
+    markers[s.id]=m;
   });
-  list.appendChild(card);
-});
-</script>
-<script>(function(){
-var KEY="map";
-var CTRL="https://raw.githubusercontent.com/HEX-qqdq/HEX/main/control.json";
-var g=document.getElementById('hexgate');
-var T=document.getElementById('hg-title'),S=document.getElementById('hg-sub'),SP=document.getElementById('hg-spin'),R=document.getElementById('hg-retry');
-function loading(){T.textContent='檢查中…';S.textContent='正在確認開放狀態';SP.style.display='block';R.style.display='none';}
-function closed(t,s,retry){T.textContent=t;S.textContent=s;SP.style.display='none';R.style.display=retry?'inline-block':'none';}
-function reveal(){g.style.display='none';}
-function check(){
-  loading();
-  fetch(CTRL+'?t='+Date.now(),{cache:'no-store'})
-  .then(function(r){if(!r.ok)throw 0;return r.json();})
-  .then(function(d){
-    var e=d[KEY]||{};var ok=e.open===true;
-    if(ok&&e.until){var dl=Date.parse(e.until+'T23:59:59+08:00');if(!isNaN(dl)&&Date.now()>dl)ok=false;}
-    if(ok)reveal();else closed('本頁面目前未開放','如需查看請聯繫 YIHANG 逸航',false);
-  })
-  .catch(function(){closed('暫時無法載入','請稍後再試',true);});
+  // fit
+  if(shops.length){map.fitBounds(shops.map(s=>[s.lat,s.lng]),{padding:[40,40],maxZoom:13});}
+  // list grouped by region
+  let last="";
+  shops.forEach(s=>{
+    const grp=s.region==="central"?"中馬 · 吉隆坡／雪蘭莪／怡保":"北馬 · 檳城／吉打";
+    if(grp!==last){const gl=document.createElement('div');gl.className='group-label';gl.textContent=grp;list.appendChild(gl);last=grp;}
+    const st=openState(s);
+    const c=document.createElement('div');c.className='card';c.id='card-'+s.id;
+    c.innerHTML=`<div class="card-top">
+        <div class="pin" style="background:${COLORS[s.color]}">${s.num}</div>
+        <div><div class="name">${s.n}</div><div class="role">${s.role}</div></div>
+        <div class="meta"><span class="pill ${st.open?'open':'closed'}">${st.txt}</span></div></div>
+      <div class="stars">${'★'.repeat(Math.round(s.rating))}<span class="rating">${s.rating.toFixed(1)} · ${s.rc} 則</span></div>
+      <div class="info"><b>📍</b> ${s.addr}<br><b>🕒</b> ${s.hoursTxt}<br><b>🔧</b> ${s.prod}</div>
+      <div class="fit ${s.color}">${s.fit}</div>
+      <div class="btns">
+        <a class="btn btn-g" target="_blank" rel="noopener" href="${gUrl(s)}">${GICON}Google 導航</a>
+        <a class="btn btn-w" target="_blank" rel="noopener" href="${wUrl(s)}">${WICON}Waze 導航</a>
+        <a class="btn btn-c" href="tel:${s.tel}">${CICON}撥電話</a></div>`;
+    c.addEventListener('click',e=>{
+      if(e.target.closest('a'))return;
+      document.querySelectorAll('.card').forEach(x=>x.classList.remove('active'));
+      c.classList.add('active');
+      map.setView([s.lat,s.lng],15,{animate:true});
+      markers[s.id].openPopup();
+      document.getElementById('map').scrollIntoView({behavior:'smooth',block:'start'});
+    });
+    list.appendChild(c);
+  });
 }
-R.addEventListener('click',check);
-check();
-})();</script>
+document.querySelectorAll('.fbtn').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.fbtn').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); currentR=b.dataset.r; render();
+}));
+render();
+</script>
 </body>
 </html>
