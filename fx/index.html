@@ -122,9 +122,14 @@ function parseBOT(csv){
   for(const line of lines){
     const c = line.split(',');
     const code = (c[0]||'').trim();
-    // 台銀 CSV 欄位：幣別,現金買入,現金賣出,即期買入,即期賣出,...
-    const spotBuy = parseFloat(c[3]);
-    const spotSell = parseFloat(c[4]);
+    // 台銀 CSV 欄位：0=幣別 2=現金買入 3=現金賣出 12=即期買入 13=即期賣出
+    let spotBuy = parseFloat(c[12]);
+    let spotSell = parseFloat(c[13]);
+    // 防呆：若固定欄位抓不到，取該列所有數字中最後兩個有效值當即期買入/賣出
+    if(isNaN(spotBuy) || isNaN(spotSell) || spotBuy<=0 || spotSell<=0){
+      const nums = c.map(x=>parseFloat(x)).filter(x=>!isNaN(x) && x>0);
+      if(nums.length>=2){ spotBuy = nums[nums.length-2]; spotSell = nums[nums.length-1]; }
+    }
     if(!isNaN(spotBuy) && !isNaN(spotSell) && spotBuy>0 && spotSell>0){
       const mid = (spotBuy + spotSell)/2;
       if(code === 'MYR') out.MYR = mid;
