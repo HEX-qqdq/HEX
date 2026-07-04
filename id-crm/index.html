@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HEX 印尼聯繫追蹤 CRM</title>
+<style>
+:root{--navy:#1F3864;--gold:#C2912F;--paper:#F6F4EE;--ink:#101820;--wa:#25D366;
+--s0:#9ca3af;--s1:#2563eb;--s2:#d97706;--s3:#7c3aed;--s4:#16a34a;--s5:#6b7280;--s6:#b91c1c}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;background:var(--paper);color:var(--ink);padding-bottom:60px}
+header{background:var(--navy);color:#fff;padding:12px 14px;position:sticky;top:0;z-index:100;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+header h1{font-size:16px;flex:1;white-space:nowrap}
+header h1 .hex{background:var(--gold);color:var(--navy);font-weight:900;padding:1px 6px;border-radius:4px;font-size:14px;margin-right:6px}
+.hbtn{border:0;border-radius:6px;padding:7px 12px;font-size:12.5px;font-weight:700;cursor:pointer}
+#btnLoad{background:#fff;color:var(--navy)} #btnSave{background:var(--gold);color:#fff}
+#syncMsg{font-size:11px;opacity:.85;width:100%}
+.dirty #btnSave{animation:pulse 1.2s infinite}
+@keyframes pulse{50%{opacity:.55}}
+/* 統計板 */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:6px;padding:10px 12px;max-width:900px;margin:0 auto}
+.stat{background:#fff;border-radius:8px;padding:8px 6px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.08);cursor:pointer;border-bottom:3px solid transparent}
+.stat b{display:block;font-size:20px}
+.stat span{font-size:10.5px;color:#6b7280}
+.stat.on{border-bottom-color:var(--gold)}
+/* 提醒列 */
+.alerts{max-width:900px;margin:0 auto;padding:0 12px}
+.alert{background:#FFF7E6;border-left:4px solid var(--gold);border-radius:6px;padding:8px 10px;font-size:12px;margin-bottom:6px;line-height:1.5}
+/* 卡片 */
+.list{max-width:900px;margin:0 auto;padding:10px 12px;display:grid;gap:10px}
+.card{background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(16,24,32,.12);overflow:hidden}
+.chead{display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;flex-wrap:wrap}
+.chead h3{font-size:14.5px;flex:1;min-width:150px}
+.chead h3 small{display:block;font-weight:400;font-size:11px;color:#6b7280}
+.spill{font-size:11px;font-weight:800;color:#fff;border-radius:12px;padding:3px 10px;white-space:nowrap}
+.next{font-size:11px;color:#b45309;font-weight:700;width:100%}
+.cbody{display:none;border-top:1px solid #eee;padding:10px 12px}
+.card.open .cbody{display:block}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.f label{display:block;font-size:11px;color:#6b7280;font-weight:700;margin-bottom:2px}
+.f input,.f select,.f textarea{width:100%;border:1px solid #d1d5db;border-radius:6px;padding:6px 8px;font-size:13px;font-family:inherit;background:#fff}
+.f textarea{min-height:52px;resize:vertical}
+.full{grid-column:1/-1}
+/* 對話紀錄 */
+.log{background:#F8F7F2;border-radius:8px;padding:8px;margin-top:6px;max-height:260px;overflow-y:auto}
+.msg{margin-bottom:6px;font-size:12.5px;line-height:1.5;padding:6px 9px;border-radius:8px;max-width:92%}
+.msg .m{font-size:10px;color:#9ca3af;display:block}
+.msg.us{background:#DCF3D8;margin-left:auto}
+.msg.them{background:#fff;border:1px solid #e5e7eb}
+.msg.note{background:#EDE9FE;font-style:italic}
+.addlog{display:flex;gap:6px;margin-top:8px}
+.addlog select{width:84px;font-size:12px;border:1px solid #d1d5db;border-radius:6px}
+.addlog input{flex:1;border:1px solid #d1d5db;border-radius:6px;padding:6px 8px;font-size:13px}
+.addlog button{background:var(--navy);color:#fff;border:0;border-radius:6px;padding:0 14px;font-weight:700;cursor:pointer}
+/* 動作列 */
+.acts{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.acts a,.acts button{flex:1;min-width:100px;text-align:center;padding:8px 4px;font-size:12.5px;font-weight:700;border-radius:7px;text-decoration:none;border:0;cursor:pointer}
+.a-wa{background:var(--wa);color:#fff}
+.a-ai{background:#7c3aed;color:#fff}
+.a-gm{background:#eef2f7;color:var(--navy)}
+footer{padding:16px;text-align:center;font-size:10.5px;color:#8a8577;line-height:1.7}
+dialog{border:0;border-radius:10px;padding:16px;max-width:380px;width:92%;box-shadow:0 8px 30px rgba(0,0,0,.3)}
+dialog h3{font-size:15px;margin-bottom:8px;color:var(--navy)}
+dialog input{width:100%;border:1px solid #d1d5db;border-radius:6px;padding:8px;font-size:13px;margin-bottom:8px}
+dialog p{font-size:11.5px;color:#6b7280;line-height:1.6;margin-bottom:8px}
+dialog button{background:var(--navy);color:#fff;border:0;border-radius:6px;padding:8px 16px;font-weight:700;cursor:pointer}
+</style>
+</head>
+<body>
+<header id="hd">
+  <h1><span class="hex">HEX</span>印尼聯繫追蹤 CRM</h1>
+  <button class="hbtn" id="btnLoad">⟳ 載入</button>
+  <button class="hbtn" id="btnSave">☁ 儲存</button>
+  <div id="syncMsg">首次使用：點「儲存」設定 GitHub PAT（同 ctrl/ 面板的 token 模式）</div>
+</header>
+
+<div class="stats" id="stats"></div>
+<div class="alerts" id="alerts"></div>
+<div class="list" id="list"></div>
+
+<footer>
+  資料存於 GitHub 私人 repo: HEX-qqdq/<b>HEX-data</b> → id-crm/data.json（Contents API，先取 SHA 再 PUT）。<br>
+  電腦與手機開同一頁即同步（改完記得按「儲存」，另一台按「載入」）。PAT 只存在本機 localStorage，不上傳。<br>
+  🤖 AI 協作：卡片內按「複製給AI」→ 貼到 Claude → 把 Claude 草擬的回覆貼回 WA，並將對話記錄回這裡。
+</footer>
+
+<dialog id="patDlg">
+  <h3>GitHub Token 設定</h3>
+  <p>輸入 fine-grained PAT（scope: HEX-qqdq/HEX，Contents 讀寫）。只儲存在此裝置。</p>
+  <input type="password" id="patInput" placeholder="github_pat_...">
+  <button onclick="savePat()">確定</button>
+</dialog>
+
+<script>
+/* ================= 聯絡人主檔（靜態） ================= */
+const STATUS = ['未聯絡','已發WA','已回覆','洽談中','已約面談','暫緩','不合適'];
+const SC = ['#9ca3af','#2563eb','#d97706','#7c3aed','#16a34a','#6b7280','#b91c1c'];
+const C = [
+ {id:'otoproject', n:'Otoproject Group', tier:'大盤總代理', city:'雅加達西 Cengkareng', wa:'628119082828',
+  info:'自有品牌Nexus/Visio/Ego＋約3,000經銷＋10直營。創辦人 Martin。', lang:'印尼文'},
+ {id:'kramat', n:'PT Kramat Motor', tier:'大盤總代理', city:'雅加達北 Kelapa Gading', wa:'6285697473333',
+  info:'Mobiletech/LM Audio/Quad/Onkyo；老闆 Ayong Jeo（Gatomi主席，華裔）。', lang:'印尼文(或中文?)'},
+ {id:'asuka', n:'ASUKA Car TV (Mirai)', tier:'大盤總代理', city:'雅加達西 Cengkareng Timur', wa:'6281292923459',
+  info:'全印尼車用影音總代理；Mirai/Mirai Vision Smart Mirror；母公司=台灣新竹飛鳥車用電子。可從台灣端接觸！', lang:'中文/印尼文'},
+ {id:'cargoos', n:'Cargoos (GOOS)', tier:'品牌商·經銷網', city:'勿加泗 Bekasi', wa:'6285179684123',
+  info:'累售35,000+台、公開招reseller；缺高階原廠替換線。★首選小夥伴', lang:'印尼文'},
+ {id:'asm', n:'ASMartdrive (ASM)', tier:'品牌商·經銷網', city:'德波 Depok', wa:'6285342625380',
+  info:'數位鏡/後視鏡升級專門，dealer rekanan 網，IG公開徵合作。', lang:'印尼文'},
+ {id:'hiro', n:'HiroOto (HIRO)', tier:'品牌商·競品觀察', city:'PIK2 Tangerang', wa:'6281995935000',
+  info:'本地#1 dashcam品牌＋合作工坊網。競品，觀察為主。', lang:'印尼文'},
+ {id:'audioteq', n:'Audioteq', tier:'品牌商·經銷網', city:'茂物 Bogor（詳址待查）', wa:'6281220538588',
+  info:'Bogor總代理，全國roadshow；CS2: 0812-2053-5088。', lang:'印尼文'},
+ {id:'auco', n:'AUCO', tier:'品牌商·待查', city:'待查', wa:null,
+  info:'文案明寫「為dealers/distributors/精品店設計」＝批發模式。IG搜AUCO Android。', lang:'印尼文/英文'},
+ {id:'orca', n:'ORCA Car Audio', tier:'品牌商·待查', city:'待查', wa:null,
+  info:'IG @orca.caraudio (6.7k)。', lang:'印尼文'},
+ {id:'avante', n:'Avante Car Entertainment', tier:'品牌商·待查', city:'待查', wa:null,
+  info:'IG @avantecarentertainment (2.5k)。', lang:'印尼文'},
+ {id:'vm', n:'VM Audio', tier:'區域批發', city:'棉蘭 Medan', wa:'6281260003215',
+  info:'蘇門答臘最大配件廳；既定種子夥伴。備用WA 0812-2220-7970。', lang:'印尼文'},
+ {id:'heca', n:'HECA (Ko Dedi)', tier:'區域批發', city:'德波 Depok', wa:'6285311005555',
+  info:'Mirai/ORCA/Nakamichi 授權線上大盤 hecaaudio.com。', lang:'印尼文'},
+ {id:'forza', n:'Variasi Mobil Forza', tier:'區域批發', city:'泗水 Surabaya', wa:'6285930067000',
+  info:'東爪哇大型精品店 4.9(1,075)。', lang:'印尼文'},
+ {id:'kedungdoro', n:'Kedungdoro Variasi', tier:'區域批發', city:'泗水 Surabaya', wa:'62817317100',
+  info:'有做批發(wholesale)、供車行。', lang:'印尼文'},
+ {id:'sentosa', n:'Toko Sentosa', tier:'區域批發', city:'三寶壟 Semarang', wa:'6283838942464',
+  info:'Google類別=wholesaler；後視鏡/車燈批發。', lang:'印尼文'},
+ {id:'mobiltronik', n:'Mobil Tronik Meruya', tier:'安裝店', city:'雅加達西 Meruya', wa:'628158818150',
+  info:'Kimbun 0815-8818-150／Fuji 0851-5682-6981；Tesla+Lexus OEM-look+鏡式DVR。★首波demo店', lang:'印尼文'},
+ {id:'vanaudio', n:'Van Audio', tier:'安裝店', city:'雅加達西 Kalideres', wa:'6281285222251',
+  info:'音響/配件/自動側鏡(Rekooda)。', lang:'印尼文'},
+ {id:'kangdashcam', n:'Kang Dashcam', tier:'安裝店', city:'雅加達西 Tomang', wa:null,
+  info:'dashcam專門(車隊)；WA待查。', lang:'印尼文'},
+ {id:'dharma', n:'Dharma Audio', tier:'安裝店·高端', city:'雅加達', wa:null,
+  info:'Alphard/Vellfire/Lexus LM風格數位鏡+dashcam。IG @dharmaaudio。★ODM對象', lang:'印尼文'},
+ {id:'audiowork', n:'AudioWork', tier:'安裝店·高端', city:'待查', wa:null,
+  info:'專攻Alphard ANH30/AGH35 E-Mirror。TikTok @audiowork.teck。', lang:'印尼文'},
+ {id:'sumberarta', n:'Sumber Arta Motor', tier:'安裝店', city:'雅加達中 MGK', wa:'6285819811590',
+  info:'Asuka-Mirai正式經銷；MGK汽配大樓5F。', lang:'印尼文'},
+ {id:'asukaxp', n:'Asuka Xperience Store', tier:'安裝店', city:'勿加泗 Harapan Indah', wa:'6281617809094',
+  info:'Asuka-Mirai體驗店(週二休)。', lang:'印尼文'},
+ {id:'tirtajaya', n:'Tirta Jaya Variasi', tier:'安裝店', city:'萬隆 Bandung', wa:'628122402988',
+  info:'Alphard ANH40 15吋主機、Throne+360。', lang:'印尼文'},
+ {id:'cihampelas', n:'Cihampelas Car Audio', tier:'安裝店', city:'萬隆 Bandung', wa:'6287722203055',
+  info:'AudioCircle/STEG/Beebot授權。', lang:'印尼文'},
+ {id:'xsignature', n:'XSignature Auto Garage', tier:'安裝店', city:'Gading Serpong', wa:'6281372000898',
+  info:'Clarion GV-F200 E-Mirror通路，多門市。', lang:'印尼文'},
+ {id:'autocars', n:'AutoCars Purwakarta', tier:'安裝店', city:'普哇加達', wa:'6281224499940',
+  info:'Google類別含supplier；PNP主機+360。', lang:'印尼文'},
+ {id:'slamet', n:'Slamet Motor', tier:'安裝店', city:'萬隆 Panyileukan', wa:'6285222222231',
+  info:'主機+360+鍍膜複合店，可到府。', lang:'印尼文'},
+ {id:'garasidrift', n:'garasi.drift', tier:'倉庫分銷·參考', city:'待查', wa:null,
+  info:'bodykit倉庫distributor(非改裝廠)，全國open reseller；模式參考。IG @garasi.drift', lang:'印尼文'}
+];
+
+/* ================= GitHub 同步 ================= */
+const GH = {owner:'HEX-qqdq', repo:'HEX-data', path:'id-crm/data.json', branch:'main'};
+let D = {};        // 動態追蹤資料 {id:{st,pic,appt,prog,ask,todo,log:[]}}
+let sha = null, dirty = false;
+
+function pat(){ return localStorage.getItem('hex_pat')||''; }
+function savePat(){ localStorage.setItem('hex_pat', document.getElementById('patInput').value.trim()); document.getElementById('patDlg').close(); doSave(); }
+function msg(t){ document.getElementById('syncMsg').textContent = t; }
+function setDirty(v){ dirty=v; document.getElementById('hd').classList.toggle('dirty',v); if(v) msg('⚠ 有未儲存變更 — 記得按「☁ 儲存」'); }
+window.addEventListener('beforeunload',e=>{ if(dirty){e.preventDefault();e.returnValue='';} });
+
+async function doLoad(){
+  msg('載入中…');
+  try{
+    const h = pat()? {Authorization:'Bearer '+pat()} : {};
+    const r = await fetch(`https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/${GH.path}?ref=${GH.branch}&t=${Date.now()}`,{headers:h});
+    if(r.status===404){ msg('雲端尚無資料檔（第一次儲存時會自動建立）'); render(); return; }
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const j = await r.json(); sha = j.sha;
+    D = JSON.parse(decodeURIComponent(escape(atob(j.content.replace(/\n/g,'')))));
+    setDirty(false); msg('✓ 已載入雲端最新（'+new Date().toLocaleTimeString()+'）'); render();
+  }catch(e){ msg('載入失敗：'+e.message+'（檢查 PAT / 網路）'); render(); }
+}
+async function doSave(){
+  if(!pat()){ document.getElementById('patDlg').showModal(); return; }
+  msg('儲存中…');
+  try{
+    // 先重取 SHA 防衝突
+    const g = await fetch(`https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/${GH.path}?ref=${GH.branch}&t=${Date.now()}`,
+      {headers:{Authorization:'Bearer '+pat()}});
+    if(g.ok){ sha = (await g.json()).sha; } else if(g.status!==404){ throw new Error('SHA HTTP '+g.status); } else { sha=null; }
+    const body = {message:'id-crm update '+new Date().toISOString(), branch:GH.branch,
+      content: btoa(unescape(encodeURIComponent(JSON.stringify(D,null,1))))};
+    if(sha) body.sha = sha;
+    const r = await fetch(`https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/${GH.path}`,
+      {method:'PUT',headers:{Authorization:'Bearer '+pat(),'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!r.ok) throw new Error('PUT HTTP '+r.status);
+    sha = (await r.json()).content.sha;
+    setDirty(false); msg('✓ 已儲存到 GitHub（'+new Date().toLocaleTimeString()+'）手機按「載入」即同步');
+  }catch(e){ msg('儲存失敗：'+e.message); }
+}
+document.getElementById('btnLoad').onclick=doLoad;
+document.getElementById('btnSave').onclick=doSave;
+
+/* ================= 資料操作 ================= */
+function d(id){ if(!D[id]) D[id]={st:0,pic:'',appt:'',prog:'',ask:'',todo:'',log:[]}; return D[id]; }
+function upd(id,k,v){ d(id)[k]=v; setDirty(true); refreshStats(); if(k==='st') renderCardHead(id); }
+function addLog(id){
+  const who=document.getElementById('lw-'+id).value;
+  const inp=document.getElementById('li-'+id);
+  if(!inp.value.trim()) return;
+  d(id).log.push({t:new Date().toISOString().slice(0,16).replace('T',' '), w:who, x:inp.value.trim()});
+  inp.value=''; setDirty(true); renderLog(id);
+}
+function copyAI(id){
+  const c=C.find(x=>x.id===id), dd=d(id);
+  const logtxt = dd.log.map(l=>`[${l.t}] ${l.w}：${l.x}`).join('\n')||'(尚無紀錄)';
+  const txt =
+`【HEX 印尼通路洽談 — 請 AI 協助】
+公司：${c.n}（${c.tier}｜${c.city}）
+背景：${c.info}
+目前狀態：${STATUS[dd.st]}｜窗口PIC：${dd.pic||'未知'}｜已約時間：${dd.appt||'無'}
+最新進度：${dd.prog||'—'}
+對方要求：${dd.ask||'—'}
+待辦：${dd.todo||'—'}
+--- 對話紀錄 ---
+${logtxt}
+--- 請求 ---
+1. 若上方有印尼文/英文訊息，請翻成繁體中文並解讀對方意圖與言外之意。
+2. 依 HEX 立場（YIHANG：專利第三剎車燈鏡頭、LVDS電子後視鏡+行錄、IATF 16949、找印尼經銷、七月中訪印尼）草擬下一則 WA 回覆：印尼文＋繁中對照，語氣照當地商務慣例（Bapak/Ibu）。
+3. 提醒我還有什麼該問/該做。`;
+  navigator.clipboard.writeText(txt).then(()=>alert('已複製！貼到 Claude 即可。'));
+}
+
+/* ================= 畫面 ================= */
+let filter=-1; // -1=全部
+function refreshStats(){
+  const cnt=STATUS.map((_,i)=>C.filter(c=>(D[c.id]?.st||0)===i).length);
+  const el=document.getElementById('stats');
+  el.innerHTML = `<div class="stat ${filter===-1?'on':''}" onclick="filter=-1;renderAll()"><b>${C.length}</b><span>全部</span></div>`+
+   STATUS.map((s,i)=>`<div class="stat ${filter===i?'on':''}" onclick="filter=${i};renderAll()"><b style="color:${SC[i]}">${cnt[i]}</b><span>${s}</span></div>`).join('');
+  // 提醒：已約面談 + 有待辦
+  const al=document.getElementById('alerts'); let h='';
+  const appts=C.filter(c=>D[c.id]?.appt).sort((a,b)=>D[a.id].appt.localeCompare(D[b.id].appt));
+  if(appts.length) h+='<div class="alert">📅 <b>已約時間：</b>'+appts.map(c=>`${D[c.id].appt.replace('T',' ')}｜${c.n}${D[c.id].pic?'（'+D[c.id].pic+'）':''}`).join('　／　')+'</div>';
+  const todos=C.filter(c=>D[c.id]?.todo);
+  if(todos.length) h+='<div class="alert">📌 <b>待辦：</b>'+todos.map(c=>`${c.n}→${D[c.id].todo}`).join('　／　')+'</div>';
+  al.innerHTML=h;
+}
+function renderLog(id){
+  const el=document.getElementById('log-'+id); const dd=d(id);
+  el.innerHTML = dd.log.map(l=>{
+    const cls=l.w==='我方'?'us':(l.w==='對方'?'them':'note');
+    return `<div class="msg ${cls}"><span class="m">${l.t}｜${l.w}</span>${l.x.replace(/</g,'&lt;')}</div>`;
+  }).join('')||'<div style="font-size:11px;color:#9ca3af;text-align:center;padding:8px">尚無對話紀錄</div>';
+  el.scrollTop=el.scrollHeight;
+}
+function renderCardHead(id){
+  const c=C.find(x=>x.id===id), dd=d(id);
+  const el=document.getElementById('pill-'+id);
+  if(el){ el.textContent=STATUS[dd.st]; el.style.background=SC[dd.st]; }
+  refreshStats();
+}
+function card(c){
+  const dd=d(c.id);
+  const waBtn = c.wa ? `<a class="a-wa" href="https://wa.me/${c.wa}" target="_blank">💬 WhatsApp</a>` : `<button class="a-gm" disabled>WA 待查</button>`;
+  return `<div class="card" id="card-${c.id}">
+  <div class="chead" onclick="document.getElementById('card-${c.id}').classList.toggle('open');renderLog('${c.id}')">
+    <h3>${c.n}<small>${c.tier}｜${c.city}</small></h3>
+    <span class="spill" id="pill-${c.id}" style="background:${SC[dd.st]}">${STATUS[dd.st]}</span>
+    ${dd.appt?`<span class="next">📅 ${dd.appt.replace('T',' ')}</span>`:''}
+  </div>
+  <div class="cbody">
+    <div style="font-size:12px;color:#6b7280;margin-bottom:8px">${c.info}｜語言：${c.lang}</div>
+    <div class="row">
+      <div class="f"><label>狀態</label><select onchange="upd('${c.id}','st',+this.value)">${STATUS.map((s,i)=>`<option value="${i}" ${dd.st===i?'selected':''}>${s}</option>`).join('')}</select></div>
+      <div class="f"><label>窗口 PIC</label><input value="${dd.pic||''}" onchange="upd('${c.id}','pic',this.value)" placeholder="姓名/職稱"></div>
+      <div class="f full"><label>📅 已約時間（面談/視訊）</label><input type="datetime-local" value="${dd.appt||''}" onchange="upd('${c.id}','appt',this.value)"></div>
+      <div class="f full"><label>最新進度</label><textarea onchange="upd('${c.id}','prog',this.value)" placeholder="例：已回覆，索取型錄與FOB價">${dd.prog||''}</textarea></div>
+      <div class="f"><label>對方要求</label><textarea onchange="upd('${c.id}','ask',this.value)" placeholder="例：要SDPPI、要樣品2台">${dd.ask||''}</textarea></div>
+      <div class="f"><label>待辦（下一步）</label><textarea onchange="upd('${c.id}','todo',this.value)" placeholder="例：寄英文型錄PDF">${dd.todo||''}</textarea></div>
+    </div>
+    <label style="font-size:11px;color:#6b7280;font-weight:700">💬 對話/進度紀錄（發完WA順手記一筆）</label>
+    <div class="log" id="log-${c.id}"></div>
+    <div class="addlog">
+      <select id="lw-${c.id}"><option>我方</option><option>對方</option><option>備註</option></select>
+      <input id="li-${c.id}" placeholder="貼上訊息摘要或原文…" onkeydown="if(event.key==='Enter')addLog('${c.id}')">
+      <button onclick="addLog('${c.id}')">記錄</button>
+    </div>
+    <div class="acts">
+      ${waBtn}
+      <button class="a-ai" onclick="copyAI('${c.id}')">🤖 複製給AI</button>
+      <a class="a-gm" href="https://www.google.com/maps/search/${encodeURIComponent(c.n+' '+c.city)}" target="_blank">🗺️ 地圖</a>
+    </div>
+  </div></div>`;
+}
+function renderAll(){
+  refreshStats();
+  const list=document.getElementById('list');
+  const arr = filter===-1? C : C.filter(c=>(D[c.id]?.st||0)===filter);
+  list.innerHTML = arr.map(card).join('');
+}
+function render(){ renderAll(); }
+render();
+if(pat()) doLoad();
+</script>
+</body>
+</html>
