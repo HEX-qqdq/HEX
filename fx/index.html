@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>馬幣 · 人民幣 · 港幣 · 台幣 即時換算</title>
+<title>美金 · 馬幣 · 人民幣 · 港幣 · 印尼盾 · 台幣 即時換算</title>
 <style>
   :root{
     --bg:#0f1e3d; --card:#16294d; --line:#2a3f66;
@@ -48,8 +48,12 @@
 <body>
 <div class="wrap">
   <h1>即時匯率換算</h1>
-  <div class="sub">馬來幣 · 人民幣 · 港幣 · 台幣<br>以台灣銀行當天即期匯率為準（即期買入 / 即期賣出取中價）</div>
+  <div class="sub">美金 · 馬來幣 · 人民幣 · 港幣 · 印尼盾 · 台幣<br>以台灣銀行當天即期匯率為準（即期買入 / 即期賣出取中價）</div>
 
+  <div class="row">
+    <label><span class="flag">🇺🇸</span>美金 USD<span class="code">USD</span></label>
+    <input type="text" inputmode="decimal" id="usd" placeholder="0">
+  </div>
   <div class="row">
     <label><span class="flag">🇲🇾</span>馬來幣 Ringgit<span class="code">MYR</span></label>
     <input type="text" inputmode="decimal" id="myr" placeholder="0">
@@ -61,6 +65,10 @@
   <div class="row">
     <label><span class="flag">🇭🇰</span>港幣 HKD<span class="code">HKD</span></label>
     <input type="text" inputmode="decimal" id="hkd" placeholder="0">
+  </div>
+  <div class="row">
+    <label><span class="flag">🇮🇩</span>印尼盾 Rupiah<span class="code">IDR</span></label>
+    <input type="text" inputmode="decimal" id="idr" placeholder="0">
   </div>
   <div class="row">
     <label><span class="flag">🇹🇼</span>新台幣 TWD<span class="code">TWD</span></label>
@@ -78,16 +86,18 @@
 <script>
 // 後備匯率（抓取失敗時使用）— 台銀即期中價，TWD per 1 unit
 // 參考 2026/06/25–26 牌價，建議以線上即時抓取為主
-const FALLBACK = { MYR: 7.55, CNY: 4.46, HKD: 3.92, UPDATED: "後備值 2026/06" };
+const FALLBACK = { MYR: 7.55, CNY: 4.46, HKD: 3.92, USD: 30.8, IDR: 0.00196, UPDATED: "後備值 2026/06" };
 
 let rateMYR = FALLBACK.MYR; // 1 MYR = ? TWD
 let rateCNY = FALLBACK.CNY; // 1 CNY = ? TWD
 let rateHKD = FALLBACK.HKD; // 1 HKD = ? TWD
+let rateUSD = FALLBACK.USD; // 1 USD = ? TWD
+let rateIDR = FALLBACK.IDR; // 1 IDR = ? TWD
 let lastUpdate = FALLBACK.UPDATED;
 let usingFallback = true;
 
 const $ = id => document.getElementById(id);
-const myrEl = $('myr'), cnyEl = $('cny'), hkdEl = $('hkd'), twdEl = $('twd'), metaEl = $('meta');
+const usdEl = $('usd'), myrEl = $('myr'), cnyEl = $('cny'), hkdEl = $('hkd'), idrEl = $('idr'), twdEl = $('twd'), metaEl = $('meta');
 
 // 從台灣銀行即期匯率 CSV 抓取
 async function fetchRates(){
@@ -104,8 +114,9 @@ async function fetchRates(){
       if(!res.ok) continue;
       const text = await res.text();
       const parsed = parseBOT(text);
-      if(parsed.MYR && parsed.CNY && parsed.HKD){
+      if(parsed.MYR && parsed.CNY && parsed.HKD && parsed.USD && parsed.IDR){
         rateMYR = parsed.MYR; rateCNY = parsed.CNY; rateHKD = parsed.HKD;
+        rateUSD = parsed.USD; rateIDR = parsed.IDR;
         lastUpdate = parsed.date || new Date().toLocaleString("zh-TW");
         usingFallback = false;
         return true;
@@ -135,6 +146,8 @@ function parseBOT(csv){
       if(code === 'MYR') out.MYR = mid;
       if(code === 'CNY') out.CNY = mid;
       if(code === 'HKD') out.HKD = mid;
+      if(code === 'USD') out.USD = mid;
+      if(code === 'IDR') out.IDR = mid;
     }
   }
   out.date = new Date().toLocaleString("zh-TW",{hour12:false});
@@ -146,8 +159,13 @@ function fmt(n){
   return n.toLocaleString("en-US",{maximumFractionDigits:2});
 }
 
+function fmtIDR(n){
+  if(!isFinite(n)) return '';
+  return n.toLocaleString("en-US",{maximumFractionDigits:0});
+}
+
 function clearOthers(except){
-  ['myr','cny','hkd','twd'].forEach(id=>{ if(id!==except) $(id).value=''; });
+  ['usd','myr','cny','hkd','idr','twd'].forEach(id=>{ if(id!==except) $(id).value=''; });
 }
 
 // 以 TWD 為中介換算
@@ -156,27 +174,34 @@ function recalc(src){
   if(raw === '' || isNaN(parseFloat(raw))){ clearOthers(src); return; }
   const v = parseFloat(raw);
   let twd;
-  if(src==='myr') twd = v * rateMYR;
+  if(src==='usd') twd = v * rateUSD;
+  else if(src==='myr') twd = v * rateMYR;
   else if(src==='cny') twd = v * rateCNY;
   else if(src==='hkd') twd = v * rateHKD;
+  else if(src==='idr') twd = v * rateIDR;
   else twd = v;
 
   if(src!=='twd') twdEl.value = fmt(twd);
+  if(src!=='usd') usdEl.value = fmt(twd / rateUSD);
   if(src!=='myr') myrEl.value = fmt(twd / rateMYR);
   if(src!=='cny') cnyEl.value = fmt(twd / rateCNY);
   if(src!=='hkd') hkdEl.value = fmt(twd / rateHKD);
+  if(src!=='idr') idrEl.value = fmtIDR(twd / rateIDR);
 }
 
+usdEl.addEventListener('input', ()=>recalc('usd'));
 myrEl.addEventListener('input', ()=>recalc('myr'));
 cnyEl.addEventListener('input', ()=>recalc('cny'));
 hkdEl.addEventListener('input', ()=>recalc('hkd'));
+idrEl.addEventListener('input', ()=>recalc('idr'));
 twdEl.addEventListener('input', ()=>recalc('twd'));
 
 function renderMeta(){
   const tag = usingFallback ? '<span class="err">（即時抓取失敗，使用後備匯率）</span>' : '';
   metaEl.innerHTML =
-    `1 MYR ≈ <b>${rateMYR.toFixed(3)}</b> TWD　|　1 CNY ≈ <b>${rateCNY.toFixed(3)}</b> TWD<br>`+
-    `1 HKD ≈ <b>${rateHKD.toFixed(3)}</b> TWD　|　1 MYR ≈ <b>${(rateMYR/rateCNY).toFixed(3)}</b> CNY<br>`+
+    `1 USD ≈ <b>${rateUSD.toFixed(3)}</b> TWD　|　1 MYR ≈ <b>${rateMYR.toFixed(3)}</b> TWD<br>`+
+    `1 CNY ≈ <b>${rateCNY.toFixed(3)}</b> TWD　|　1 HKD ≈ <b>${rateHKD.toFixed(3)}</b> TWD<br>`+
+    `1 TWD ≈ <b>${(1/rateIDR).toFixed(0)}</b> IDR　|　1 MYR ≈ <b>${(rateMYR/rateCNY).toFixed(3)}</b> CNY<br>`+
     `更新時間：${lastUpdate} ${tag}`;
 }
 
@@ -185,7 +210,7 @@ async function load(){
   await fetchRates();
   renderMeta();
   // 若已有輸入值，重算
-  ['myr','cny','hkd','twd'].forEach(id=>{ if($(id).value){ recalc(id); } });
+  ['usd','myr','cny','hkd','idr','twd'].forEach(id=>{ if($(id).value){ recalc(id); } });
 }
 
 $('refreshBtn').addEventListener('click', load);
