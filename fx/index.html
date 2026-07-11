@@ -48,7 +48,7 @@
 <body>
 <div class="wrap">
   <h1>即時匯率換算</h1>
-  <div class="sub">美金 · 馬來幣 · 人民幣 · 港幣 · 印尼盾 · 台幣<br>以台灣銀行當天即期匯率為準（即期買入 / 即期賣出取中價）</div>
+  <div class="sub">美金 · 馬來幣 · 人民幣 · 港幣 · 印尼盾 · 台幣<br>以台灣銀行當天匯率為準（即期買入／賣出中價；無即期者採現金中價）</div>
 
   <div class="row">
     <label><span class="flag">🇺🇸</span>美金 USD<span class="code">USD</span></label>
@@ -78,21 +78,23 @@
   <div class="meta" id="meta">匯率載入中…</div>
   <button class="refresh" id="refreshBtn">重新整理匯率</button>
   <div class="rate-line">
-    資料來源：臺灣銀行牌告匯率（即期買入／賣出中價）<br>
+    資料來源：臺灣銀行牌告匯率（即期中價；無即期者採現金中價）<br>
     匯率僅供參考，實際成交以銀行櫃檯為準
   </div>
 </div>
 
 <script>
-// 後備匯率（抓取失敗時使用）— 台銀即期中價，TWD per 1 unit
-// 參考 2026/06/25–26 牌價，建議以線上即時抓取為主
-const FALLBACK = { MYR: 7.55, CNY: 4.46, HKD: 3.92, USD: 30.8, IDR: 0.00196, UPDATED: "後備值 2026/06" };
+// 後備匯率（抓取失敗時使用）— TWD per 1 unit
+// 依 2026/07/11 台銀牌價：USD/CNY/HKD 即期中價；MYR/IDR 台銀無即期，用現金中價
+const FALLBACK = { USD: 32.15, MYR: 7.6365, CNY: 4.742, HKD: 4.101, IDR: 0.00173, UPDATED: "後備值 2026/07" };
 
+let rateUSD = FALLBACK.USD; // 1 USD = ? TWD
 let rateMYR = FALLBACK.MYR; // 1 MYR = ? TWD
 let rateCNY = FALLBACK.CNY; // 1 CNY = ? TWD
 let rateHKD = FALLBACK.HKD; // 1 HKD = ? TWD
-let rateUSD = FALLBACK.USD; // 1 USD = ? TWD
 let rateIDR = FALLBACK.IDR; // 1 IDR = ? TWD
+// 各幣別匯率類型（即期/現金），後備時 MYR/IDR 為現金、其餘即期
+let rateType = { USD:'即期', MYR:'現金', CNY:'即期', HKD:'即期', IDR:'現金' };
 let lastUpdate = FALLBACK.UPDATED;
 let usingFallback = true;
 
@@ -114,9 +116,13 @@ async function fetchRates(){
       if(!res.ok) continue;
       const text = await res.text();
       const parsed = parseBOT(text);
-      if(parsed.MYR && parsed.CNY && parsed.HKD && parsed.USD && parsed.IDR){
-        rateMYR = parsed.MYR; rateCNY = parsed.CNY; rateHKD = parsed.HKD;
-        rateUSD = parsed.USD; rateIDR = parsed.IDR;
+      if(parsed.USD && parsed.MYR && parsed.CNY && parsed.HKD && parsed.IDR){
+        rateUSD = parsed.USD.rate; rateMYR = parsed.MYR.rate; rateCNY = parsed.CNY.rate;
+        rateHKD = parsed.HKD.rate; rateIDR = parsed.IDR.rate;
+        rateType = {
+          USD: parsed.USD.type, MYR: parsed.MYR.type, CNY: parsed.CNY.type,
+          HKD: parsed.HKD.type, IDR: parsed.IDR.type
+        };
         lastUpdate = parsed.date || new Date().toLocaleString("zh-TW");
         usingFallback = false;
         return true;
@@ -130,24 +136,23 @@ async function fetchRates(){
 function parseBOT(csv){
   const lines = csv.trim().split(/\r?\n/);
   const out = {};
+  const want = ['USD','MYR','CNY','HKD','IDR'];
+  // 台銀 CSV 欄位（每列22欄）：
+  // 0=幣別 1=本行買入 2=現金買入 3=即期買入 …
+  // 11=本行賣出 12=現金賣出 13=即期賣出
   for(const line of lines){
     const c = line.split(',');
     const code = (c[0]||'').trim();
-    // 台銀 CSV 欄位：0=幣別 2=現金買入 3=現金賣出 12=即期買入 13=即期賣出
-    let spotBuy = parseFloat(c[12]);
-    let spotSell = parseFloat(c[13]);
-    // 防呆：若固定欄位抓不到，取該列所有數字中最後兩個有效值當即期買入/賣出
-    if(isNaN(spotBuy) || isNaN(spotSell) || spotBuy<=0 || spotSell<=0){
-      const nums = c.map(x=>parseFloat(x)).filter(x=>!isNaN(x) && x>0);
-      if(nums.length>=2){ spotBuy = nums[nums.length-2]; spotSell = nums[nums.length-1]; }
-    }
-    if(!isNaN(spotBuy) && !isNaN(spotSell) && spotBuy>0 && spotSell>0){
-      const mid = (spotBuy + spotSell)/2;
-      if(code === 'MYR') out.MYR = mid;
-      if(code === 'CNY') out.CNY = mid;
-      if(code === 'HKD') out.HKD = mid;
-      if(code === 'USD') out.USD = mid;
-      if(code === 'IDR') out.IDR = mid;
+    if(!want.includes(code)) continue;
+    const spotBuy  = parseFloat(c[3]);
+    const spotSell = parseFloat(c[13]);
+    const cashBuy  = parseFloat(c[2]);
+    const cashSell = parseFloat(c[12]);
+    // 即期優先；台銀對部分幣別（如 MYR、IDR）無即期，退回現金匯率
+    if(spotBuy>0 && spotSell>0){
+      out[code] = { rate:(spotBuy+spotSell)/2, type:'即期' };
+    } else if(cashBuy>0 && cashSell>0){
+      out[code] = { rate:(cashBuy+cashSell)/2, type:'現金' };
     }
   }
   out.date = new Date().toLocaleString("zh-TW",{hour12:false});
@@ -198,11 +203,16 @@ twdEl.addEventListener('input', ()=>recalc('twd'));
 
 function renderMeta(){
   const tag = usingFallback ? '<span class="err">（即時抓取失敗，使用後備匯率）</span>' : '';
+  // 標示哪些幣別用現金匯率（台銀無即期報價者）
+  const cashList = ['USD','MYR','CNY','HKD','IDR'].filter(k=>rateType[k]==='現金');
+  const cashNote = cashList.length
+    ? `<br><span style="color:#e8b54d">※ ${cashList.join('、')} 台銀無即期報價，採現金匯率中價</span>`
+    : '';
   metaEl.innerHTML =
     `1 USD ≈ <b>${rateUSD.toFixed(3)}</b> TWD　|　1 MYR ≈ <b>${rateMYR.toFixed(3)}</b> TWD<br>`+
     `1 CNY ≈ <b>${rateCNY.toFixed(3)}</b> TWD　|　1 HKD ≈ <b>${rateHKD.toFixed(3)}</b> TWD<br>`+
     `1 TWD ≈ <b>${(1/rateIDR).toFixed(0)}</b> IDR　|　1 MYR ≈ <b>${(rateMYR/rateCNY).toFixed(3)}</b> CNY<br>`+
-    `更新時間：${lastUpdate} ${tag}`;
+    `更新時間：${lastUpdate} ${tag}${cashNote}`;
 }
 
 async function load(){
