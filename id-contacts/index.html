@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HEX 印尼通路聯繫 · 導航</title>
+<style>
+:root{--navy:#1F3864;--gold:#C2912F;--paper:#F6F4EE;--ink:#101820;--wa:#25D366;
+--t1:#B3282D;--t2:#1F3864;--t3:#1E7A46;--t4:#7A5C1E;--gm:#4285F4;--wz:#0A6ED1}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;background:var(--paper);color:var(--ink);padding-bottom:40px}
+header{background:var(--navy);color:#fff;padding:12px 14px}
+header h1{font-size:16px}header h1 .hex{background:var(--gold);color:var(--navy);font-weight:900;padding:1px 6px;border-radius:4px;margin-right:6px;font-size:14px}
+header p{font-size:11px;opacity:.8;margin-top:3px}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:9px 12px;background:#fff;border-bottom:2px solid var(--navy);position:sticky;top:0;z-index:10}
+.tab{flex:0 0 auto;border:1.5px solid var(--navy);color:var(--navy);background:#fff;border-radius:18px;padding:5px 13px;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap}
+.tab.on{background:var(--navy);color:#fff}
+.tab .d{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px}
+.list{max-width:820px;margin:0 auto;padding:12px;display:grid;gap:10px}
+.card{background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(16,24,32,.12);overflow:hidden;border-left:6px solid var(--navy)}
+.top{padding:10px 12px 4px;display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.top h3{font-size:15px}.top h3 small{display:block;font-size:11px;color:#6b7280;font-weight:400;margin-top:2px}
+.badge{flex:0 0 auto;font-size:10px;font-weight:800;color:#fff;border-radius:4px;padding:3px 8px}
+.meta{padding:2px 12px 8px;font-size:12px;color:#374151;line-height:1.6}
+.meta .addr{color:#111}.meta .note{color:#8A6A2A;font-size:11.5px;margin-top:2px}
+.acts{display:flex;border-top:1px solid #eee;flex-wrap:wrap}
+.acts a{flex:1;min-width:25%;text-align:center;padding:9px 4px;font-size:12px;font-weight:700;text-decoration:none;border-right:1px solid #eee}
+.acts a:last-child{border-right:0}
+.a-wa{color:#128C4A}.a-tel{color:#333}.a-gm{color:var(--gm)}.a-wz{color:var(--wz)}
+.a-off{color:#bbb;pointer-events:none}
+footer{text-align:center;font-size:10.5px;color:#8a8577;padding:14px;line-height:1.6}
+</style>
+</head>
+<body>
+<header>
+  <h1><span class="hex">HEX</span>印尼通路聯繫 · 導航</h1>
+  <p>電話 · WA · Google Maps · Waze 一鍵開啟｜更新 2026/07｜Tom +886 922 230 022</p>
+</header>
+<div class="tabs" id="tabs">
+  <button class="tab on" data-f="all">全部</button>
+  <button class="tab" data-f="t1"><span class="d" style="background:var(--t1)"></span>大盤</button>
+  <button class="tab" data-f="t2"><span class="d" style="background:var(--t2)"></span>品牌商</button>
+  <button class="tab" data-f="t3"><span class="d" style="background:var(--t3)"></span>區域批發</button>
+  <button class="tab" data-f="t4"><span class="d" style="background:var(--t4)"></span>安裝店</button>
+  <button class="tab" data-f="star">★優先</button>
+</div>
+<div class="list" id="list"></div>
+<footer>WA 一鍵開對話 · GMaps 帶 place_id 精準定位 · Waze 一鍵導航。「待查」未取得,不推估。資料來源 Google/IG 實查,僅供內部參考。</footer>
+<script>
+const TN={t1:{c:'#B3282D',n:'大盤總代理'},t2:{c:'#1F3864',n:'品牌商'},t3:{c:'#1E7A46',n:'區域批發'},t4:{c:'#7A5C1E',n:'安裝店'}};
+const S=[
+ {t:'t1',star:1,n:'Otoproject Group',city:'雅加達西 Cengkareng',lat:-6.1257874,lng:106.7294138,pid:'ChIJU42cVRsdai4RHC6NOH8KvpA',
+  tel:'',wa:'628119082828',waT:'+62 811-9082-828',
+  addr:'Ruko Sedayu Square Blok H-29, Jl. Lingkar Luar Barat, Cengkareng, Jakarta Barat 11730',
+  note:'自有 Nexus/Visio/Ego/Neo/Tomiko;3,000經銷+10直營。全國鋪貨首選'},
+ {t:'t1',star:1,n:'PT Kramat Motor',city:'雅加達北 Kelapa Gading',lat:-6.145077,lng:106.901374,pid:'ChIJG9AAZEb1aS4RfBcoFauk3FY',
+  tel:'62214534643',telT:'+62 21-4534643',wa:'6285697473333',waT:'0856-9747-3333',
+  addr:'Jl. Gading Kirana Timur H11 No.1, Kelapa Gading, Jakarta Utara 14240',
+  note:'Mobiletech/LM Audio/Quad/Onkyo;老闆 Ayong Jeo(Gatomi主席)'},
+ {t:'t1',star:1,n:'ASUKA Car TV (Mirai)',city:'雅加達西 Cengkareng Timur',lat:-6.1355315,lng:106.7360616,pid:'ChIJZ6_xzVkdai4RCnwE2tRo6YU',
+  tel:'',wa:'6281292923459',waT:'+62 812-9292-3459',
+  addr:'Ruko Citypark Business District Blok E-07, Jl. Kapuk, Cengkareng Timur, Jakarta Barat 11730',
+  note:'Mirai/Mirai Vision;新旗艦MV-212D 12吋4K+ADAS。台灣新竹母公司,可台灣端談。強競品'},
+ {t:'t2',star:1,n:'Cargoos (GOOS)',city:'勿加泗 Bekasi',lat:-6.2908058,lng:107.0582992,pid:'ChIJmzmL5zuPaS4RozvP6msZL1k',
+  tel:'',wa:'6285179684123',waT:'+62 851-7968-4123',
+  addr:'Grand Wisata, Cluster Garden House Blok HB10 No.9, Tambun Selatan, Bekasi 17510',
+  note:'M1 Pro 9.66"4K/Mirai 3C;售35,000+台,公開招reseller。★首選小夥伴'},
+ {t:'t2',star:1,n:'ASMartdrive (ASM)',city:'德波 Depok',lat:-6.3790221,lng:106.8534938,pid:'ChIJjcG7-nnsaS4RF9jb1okfTrA',
+  tel:'622129841685',telT:'+62 21-2984-1685',wa:'6285342625380',waT:'0853-4262-5380',
+  addr:'Jl. Gama Setia Raya Blok A7 No.8, Bakti Jaya, Sukmajaya, Depok 16418',
+  note:'數位鏡/電動收折鏡/電動尾門;傳代理BYD Denza。IG公開徵合作'},
+ {t:'t2',star:0,n:'HiroOto (HIRO)',city:'PIK2 Tangerang',lat:-6.0579787,lng:106.6805062,pid:'ChIJT1q038MFai4Rpn8eEJMWQ8w',
+  tel:'',wa:'6281995935000',waT:'+62 819-9593-5000',
+  addr:'Rukan Osaka, Jl. Boulevard OTA B16, PIK2, Kosambi, Tangerang 15214',
+  note:'Hirodio主機+Mirror Dashcam;全國合作工坊。e-mirror競品,觀察'},
+ {t:'t2',star:0,n:'Audioteq',city:'茂物 Bogor',lat:-6.5846717,lng:106.7717811,pid:'ChIJh2S0LOvFaS4R0XnKJjP4nFA',
+  tel:'6281220538588',telT:'+62 812-2053-8588',wa:'6281220535088',waT:'0812-2053-5088',
+  addr:"Ruko Abdi Square, Jl. Darul Qur'an, Loji, Bogor Barat 16117",
+  note:'Android主機品牌(AQ-A9,支援360),非以dashcam為主。對e-mirror興趣待確認'},
+ {t:'t3',star:1,n:'HECA (Ko Dedi)',city:'德波 Depok',lat:-6.3713771,lng:106.7288455,pid:'ChIJL6KgLZjvaS4RBS0_71bKuJE',
+  tel:'',wa:'6285311005555',waT:'+62 853-1100-5555',
+  addr:'Perum Bukit Sutera Blk. A2 No.8, Pondok Petir, Bojongsari, Depok 16517',
+  note:'多品牌電商(Nakamichi/Mirai/ORCA/70mai);11款鏡式全通用外掛。★洽談中-要price list'},
+ {t:'t3',star:1,n:'VM Audio (Van Motor)',city:'棉蘭 Medan',lat:3.5901503,lng:98.6503877,pid:'ChIJ8XP1ki8uMTAR7erhbBxpvpQ',
+  tel:'62614535100',telT:'+62 61-4535100',wa:'6281260003215',waT:'0812-6000-3215',
+  addr:'Jl. Gatot Subroto No.33, Sei Sikambing D, Medan Petisah, Medan 20119',
+  note:'棉蘭最大showroom(est.1980);主推ORCA dashcam。★蘇門答臘種子夥伴'},
+ {t:'t3',star:0,n:'Variasi Mobil Forza',city:'泗水 Surabaya',lat:-7.2673826,lng:112.7330657,pid:'ChIJqWe6VF_51y0RNXHM0v44-8I',
+  tel:'',wa:'6285930067000',waT:'+62 859-3006-7000',
+  addr:'Jl. Kedungsari No.77, Tegalsari, Surabaya 60263',note:'東爪哇大型精品店 4.9(1,075)'},
+ {t:'t3',star:0,n:'Kedungdoro Variasi',city:'泗水 Surabaya',lat:-7.2628039,lng:112.7315664,pid:'ChIJzaGiYFn51y0R68KwPPfwI1w',
+  tel:'',wa:'62817317100',waT:'+62 817-317-100',
+  addr:'Jl. Kedung Doro No.135, Tegalsari, Surabaya 60261',note:'有做批發(wholesale)、供車行'},
+ {t:'t3',star:0,n:'Toko Sentosa',city:'三寶壟 Semarang',lat:-6.9813943,lng:110.4442155,pid:'ChIJry5HfY6NcC4Ruvh2ZqXv4dY',
+  tel:'',wa:'6283838942464',waT:'+62 838-3894-2464',
+  addr:'Pasar Barito Baru (MAJT), Sambirejo, Gayamsari, Semarang 50166',note:'Google類別=批發商;後視鏡/車燈批發'},
+ {t:'t3',star:0,n:'MOBILSTATION Makassar',city:'望加錫 Makassar',lat:-5.1492435,lng:119.4363633,pid:'ChIJNdcEqr7ivi0RC1Nv25rHdcA',
+  tel:'',wa:'6281524181111',waT:'+62 815-2418-1111',
+  addr:'Jl. Pelita Raya No.10-11, Masale, Panakkukang, Makassar 90231',note:'望加錫最佳car audio 5.0(110);蘇拉威西據點'},
+ {t:'t4',star:1,n:'Mobil Tronik Meruya',city:'雅加達西 Meruya',lat:-6.19322,lng:106.742716,pid:'ChIJS08pFWz3aS4RNCcav2uqXos',
+  tel:'622158905356',telT:'+62 21-58905356',wa:'628158818150',waT:'0815-8818-150',
+  addr:'Jl. Kembang Kerep No.75B, Meruya Utara, Kembangan, Jakarta Barat 11610',
+  note:'Tesla+Lexus/Toyota OEM-look+鏡式DVR,非破壞安裝。★首波demo店'},
+ {t:'t4',star:0,n:'Van Audio',city:'雅加達西 Kalideres',lat:-6.1487469,lng:106.7024877,pid:'ChIJvR2Wqmz3aS4RkA7_fYGdGoA',
+  tel:'62215456050',telT:'+62 21-5456050',wa:'6281285222251',waT:'0812-8522-2251',
+  addr:'Ruko Kalideres Indah 1, Jl. Peta Selatan No.C-3, Kalideres, Jakarta Barat 11840',
+  note:'音響/配件/自動側鏡(Rekooda)'},
+ {t:'t4',star:0,n:'Kang Dashcam',city:'雅加達西 Tomang',lat:-6.170445,lng:106.8001509,pid:'ChIJj0aThDr3aS4RKUKJEDLiG5w',
+  tel:'',wa:'',waT:'(待查)',
+  addr:'Jl. Mandala Utara No.371D, Tomang, Grogol Petamburan, Jakarta Barat 11440',note:'dashcam專門;Mobiletech經銷點'},
+ {t:'t4',star:0,n:'XSignature Auto Garage',city:'坦格朗 Gading Serpong',lat:-6.2651598,lng:106.6271713,pid:'ChIJIeVPFfIBQi4RS4C6d2_gDAU',
+  tel:'',wa:'6281372000898',waT:'+62 813-7200-0898',
+  addr:'Ruko Alicante Blok C36, Medang, Pagedangan, Tangerang 15334',note:'Clarion GV-F200 E-Mirror/Nakamichi+360通路'},
+ {t:'t4',star:0,n:'Tirta Jaya Variasi',city:'萬隆 Bandung',lat:-6.9242129,lng:107.6266123,pid:'ChIJO1jUpNfnaC4RbP4RupHlyhA',
+  tel:'',wa:'628122402988',waT:'+62 812-2402-988',
+  addr:'Jl. Gatot Subroto No.125, Samoja, Batununggal, Bandung 40273',note:'Alphard ANH40 15吋主機、Throne+360'},
+ {t:'t4',star:0,n:'Cihampelas Car Audio',city:'萬隆 Bandung',lat:-6.9028201,lng:107.6045374,pid:'ChIJW4UfntLnaC4Rpy1s3uEK0uU',
+  tel:'',wa:'6287722203055',waT:'+62 877-2220-3055',
+  addr:'Jl. Cihampelas No.46A, Tamansari, Bandung Wetan, Bandung 40116',note:'AudioCircle/STEG/Beebot授權;ORCA安裝'},
+ {t:'t4',star:0,n:'AutoCars Purwakarta',city:'普哇加達 Purwakarta',lat:-6.5605116,lng:107.4405042,pid:'ChIJZzHfw1MOaS4RDMAbDr5ylbY',
+  tel:'',wa:'6281224499940',waT:'+62 812-2449-9940',
+  addr:'Jl. Basuki Rahmat, Sindangkasih, Purwakarta 41112',note:'含supplier;PNP主機+360校正'},
+ {t:'t4',star:0,n:'Slamet Motor',city:'萬隆 Panyileukan',lat:-6.9401096,lng:107.7135746,pid:'ChIJ8X7ZR9_CaC4RR1te8-Q7U-Y',
+  tel:'',wa:'6285222222231',waT:'+62 852-2222-2231',
+  addr:'Jl. Soekarno-Hatta No.8 (Citra Bumi AB6), Cipadung Kidul, Bandung 40614',note:'主機+360+鍍膜;可到府'},
+ {t:'t4',star:0,n:'Dharma Audio',city:'雅加達(高端)',lat:null,lng:null,pid:'',
+  tel:'',wa:'',waT:'IG @dharmaaudio',addr:'多分點(詳址待查)',
+  note:'Alphard/Vellfire/Lexus LM風格數位鏡+dashcam。★高端ODM對象'},
+];
+function gm(s){return s.pid?('https://www.google.com/maps/search/?api=1&query='+s.lat+','+s.lng+'&query_place_id='+s.pid):('https://www.google.com/maps/search/'+encodeURIComponent(s.n+' '+s.city));}
+function wz(s){return s.lat?('https://waze.com/ul?ll='+s.lat+','+s.lng+'&navigate=yes'):'#';}
+function card(s){
+ const wa=s.wa?`<a class="a-wa" href="https://wa.me/${s.wa}" target="_blank">💬 WA</a>`:`<a class="a-off">WA待查</a>`;
+ const tel=s.tel?`<a class="a-tel" href="tel:+${s.tel}">☎ 電話</a>`:'';
+ const wz_=s.lat?`<a class="a-wz" href="${wz(s)}" target="_blank">🧭 Waze</a>`:`<a class="a-off">Waze待查</a>`;
+ return `<div class="card" data-t="${s.t}" data-s="${s.star}" style="border-left-color:${TN[s.t].c}">
+  <div class="top"><h3>${s.star?'★ ':''}${s.n}<small>${s.city}</small></h3>
+   <span class="badge" style="background:${TN[s.t].c}">${TN[s.t].n}</span></div>
+  <div class="meta"><div class="addr">⚑ ${s.addr}</div>
+   <div>☎ ${s.tel?s.telT:'—'}　　WA ${s.waT}</div>
+   <div class="note">▸ ${s.note}</div></div>
+  <div class="acts">${wa}${tel}<a class="a-gm" href="${gm(s)}" target="_blank">🗺️ GMaps</a>${wz_}</div></div>`;
+}
+function render(f){
+ const arr=f==='all'?S:(f==='star'?S.filter(x=>x.star):S.filter(x=>x.t===f));
+ document.getElementById('list').innerHTML=arr.map(card).join('');
+}
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
+ document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+ b.classList.add('on'); render(b.dataset.f);
+});
+render('all');
+</script>
+</body>
+</html>
